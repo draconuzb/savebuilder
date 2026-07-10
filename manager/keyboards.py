@@ -1,0 +1,80 @@
+"""Manager bot klaviaturalari."""
+from __future__ import annotations
+
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+)
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+from core.constants import CATEGORY_TITLES
+
+# ---- Asosiy menyu (reply keyboard) ----
+MAIN_MENU = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="➕ Bot yaratish"), KeyboardButton(text="🤖 Botlarim")],
+        [KeyboardButton(text="💳 Pul kiritish"), KeyboardButton(text="📇 Hisobim")],
+        [KeyboardButton(text="💎 Referal"), KeyboardButton(text="📖 Qo'llanma")],
+        [KeyboardButton(text="🧧 Qo'llab-quvvatlash")],
+    ],
+    resize_keyboard=True,
+)
+
+
+def security_check_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🔐 Tekshiruvni boshlash", callback_data="sec:start")]
+        ]
+    )
+
+
+def force_sub_kb(channels: list[str]) -> InlineKeyboardMarkup:
+    b = InlineKeyboardBuilder()
+    for ch in channels:
+        username = ch.lstrip("@")
+        b.row(
+            InlineKeyboardButton(
+                text=f"🔗 Kanalga o'tish", url=f"https://t.me/{username}"
+            )
+        )
+    b.row(InlineKeyboardButton(text="✅ Tekshirish", callback_data="sec:check"))
+    return b.as_markup()
+
+
+def categories_kb() -> InlineKeyboardMarkup:
+    b = InlineKeyboardBuilder()
+    for code, title in CATEGORY_TITLES.items():
+        b.row(InlineKeyboardButton(text=title, callback_data=f"cat:{code}"))
+    b.row(InlineKeyboardButton(text="❌ Bekor qilish", callback_data="create:cancel"))
+    return b.as_markup()
+
+
+def templates_kb(templates: list) -> InlineKeyboardMarkup:
+    """templates: list of (code, title) tuples."""
+    b = InlineKeyboardBuilder()
+    for code, title in templates:
+        b.row(InlineKeyboardButton(text=title, callback_data=f"tpl:{code}"))
+    b.row(InlineKeyboardButton(text="❌ Bekor qilish", callback_data="create:cancel"))
+    return b.as_markup()
+
+
+def template_page_kb(code: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="✅ Bot yaratish", callback_data=f"tplcreate:{code}")],
+            [InlineKeyboardButton(text="🎟 Tariflar ro'yxati", callback_data=f"tpltariffs:{code}")],
+            [InlineKeyboardButton(text="❌ Bekor qilish", callback_data="create:cancel")],
+        ]
+    )
+
+
+def tariffs_kb(tariffs: list) -> InlineKeyboardMarkup:
+    """tariffs: list of (id, name, price)."""
+    b = InlineKeyboardBuilder()
+    for tid, name, price in tariffs:
+        b.row(InlineKeyboardButton(text=f"{name} — {price:,.0f} so'm", callback_data=f"tariff:{tid}"))
+    b.row(InlineKeyboardButton(text="❌ Bekor qilish", callback_data="create:cancel"))
+    return b.as_markup()
