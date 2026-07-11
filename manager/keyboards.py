@@ -17,23 +17,25 @@ from core.config import get_settings
 from core.constants import CATEGORY_TITLES
 
 # ---- Asosiy menyu (reply keyboard) — rangli ----
+# Menyu tugmalari: (yorliq, icon_custom_emoji_id, style). Matnda emoji yo'q —
+# animatsiyali ikonka icon_custom_emoji_id orqali (premium bot).
 MAIN_MENU = ReplyKeyboardMarkup(
     keyboard=[
         [
-            KeyboardButton(text="➕ Bot yaratish", style="success"),
-            KeyboardButton(text="🤖 Botlarim"),
+            KeyboardButton(text="Bot yaratish", icon_custom_emoji_id="5312016608254762256", style="success"),
+            KeyboardButton(text="Botlarim", icon_custom_emoji_id="5309832892262654231"),
         ],
         [
-            KeyboardButton(text="💳 Pul kiritish", style="primary"),
-            KeyboardButton(text="📇 Hisobim"),
+            KeyboardButton(text="Pul kiritish", icon_custom_emoji_id="5350452584119279096", style="primary"),
+            KeyboardButton(text="Hisobim", icon_custom_emoji_id="5409357944619802453"),
         ],
         [
-            KeyboardButton(text="💎 Referal"),
-            KeyboardButton(text="🎁 Promokod", style="success"),
+            KeyboardButton(text="Referal", icon_custom_emoji_id="5309958691854754293"),
+            KeyboardButton(text="Promokod", icon_custom_emoji_id="5310228579009699834", style="success"),
         ],
         [
-            KeyboardButton(text="📖 Qo'llanma"),
-            KeyboardButton(text="🧧 Qo'llab-quvvatlash"),
+            KeyboardButton(text="Qo'llanma", icon_custom_emoji_id="5350481781306958339"),
+            KeyboardButton(text="Qo'llab-quvvatlash", icon_custom_emoji_id="5309984423003823246"),
         ],
     ],
     resize_keyboard=True,

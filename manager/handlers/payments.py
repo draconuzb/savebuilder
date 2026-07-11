@@ -39,7 +39,7 @@ def _packages_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
-@router.message(F.text == "💳 Pul kiritish")
+@router.message(F.text.in_({"Pul kiritish", "💳 Pul kiritish"}))
 async def topup_menu(message: Message) -> None:
     from manager.texts import premiumize
 

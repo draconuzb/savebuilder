@@ -26,7 +26,7 @@ router = Router(name="manager-create")
 log = logging.getLogger(__name__)
 
 
-@router.message(F.text == "➕ Bot yaratish")
+@router.message(F.text.in_({"Bot yaratish", "➕ Bot yaratish"}))
 async def start_create(message: Message, state: FSMContext) -> None:
     await state.set_state(CreateBot.choosing_category)
     await message.answer(texts.CHOOSE_CATEGORY, reply_markup=categories_kb())

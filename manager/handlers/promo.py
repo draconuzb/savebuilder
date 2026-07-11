@@ -66,7 +66,7 @@ async def _redeem(message: Message, code: str) -> None:
     )
 
 
-@router.message(F.text == "🎁 Promokod")
+@router.message(F.text.in_({"Promokod", "🎁 Promokod"}))
 async def promo_button(message: Message, state: FSMContext) -> None:
     await state.set_state(PromoRedeem.waiting_code)
     await message.answer("🎁 <b>Promokod</b>\n━━━━━━━━━━━━━━━\nPromokodingizni yuboring:")

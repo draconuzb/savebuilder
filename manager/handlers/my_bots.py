@@ -99,7 +99,7 @@ async def _render_bot(bot: ChildBot) -> str:
     )
 
 
-@router.message(F.text == "🤖 Botlarim")
+@router.message(F.text.in_({"Botlarim", "🤖 Botlarim"}))
 async def my_bots(message: Message) -> None:
     async with get_session() as s:
         user = (

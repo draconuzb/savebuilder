@@ -18,7 +18,7 @@ from manager import texts
 router = Router(name="manager-menu")
 
 
-@router.message(F.text == "📇 Hisobim")
+@router.message(F.text.in_({"Hisobim", "📇 Hisobim"}))
 async def account(message: Message) -> None:
     async with get_session() as s:
         res = await s.execute(select(User).where(User.tg_id == message.from_user.id))
@@ -39,7 +39,7 @@ async def account(message: Message) -> None:
     )
 
 
-@router.message(F.text == "💎 Referal")
+@router.message(F.text.in_({"Referal", "💎 Referal"}))
 async def referral(message: Message) -> None:
     me = (await message.bot.get_me()).username
     link = f"https://t.me/{me}?start=ref{message.from_user.id}"
@@ -74,7 +74,7 @@ async def referral(message: Message) -> None:
     )
 
 
-@router.message(F.text == "📖 Qo'llanma")
+@router.message(F.text.in_({"Qo'llanma", "📖 Qo'llanma"}))
 async def guide(message: Message) -> None:
     await message.answer(texts.GUIDE)
 
@@ -84,6 +84,6 @@ async def help_cmd(message: Message) -> None:
     await message.answer(texts.GUIDE)
 
 
-@router.message(F.text == "🧧 Qo'llab-quvvatlash")
+@router.message(F.text.in_({"Qo'llab-quvvatlash", "🧧 Qo'llab-quvvatlash"}))
 async def support(message: Message) -> None:
     await message.answer(texts.SUPPORT)
