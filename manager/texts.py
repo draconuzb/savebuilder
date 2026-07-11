@@ -1,16 +1,32 @@
-"""Manager bot matnlari (uz). Premium emoji shu yerda qo'shiladi."""
+"""Manager bot matnlari (uz). Premium (custom) emoji <tg-emoji> orqali.
+
+Premium bot (egasi Premium) HTML parse_mode'da custom emoji yubora oladi.
+custom_emoji_id lar getForumTopicIconStickers dan olingan (tekin, animatsiyali)."""
+
+
+def pe(emoji_id: str, char: str) -> str:
+    """Premium (custom) emoji — HTML tegi. Non-premium ko'ruvchi char ni ko'radi."""
+    return f'<tg-emoji emoji-id="{emoji_id}">{char}</tg-emoji>'
+
+
+# Real custom_emoji_id lar (getForumTopicIconStickers)
+PE_BOLT = "5312016608254762256"  # ⚡️
+PE_FIRE = "5312241539987020022"  # 🔥
+PE_IDEA = "5312536423851630001"  # 💡
+PE_BROADCAST = "5309984423003823246"  # 📣
+PE_COOL = "5420216386448270341"  # 🆒
 
 WELCOME = (
-    "🤖 <b>SaveBuilder</b> — botlar yaratish platformasi\n"
+    f"{pe(PE_BOLT, '⚡️')} <b>SaveBuilder</b> — botlar yaratish platformasi\n"
     "━━━━━━━━━━━━━━━\n"
     "Kod yozmasdan o'z Telegram botingizni <b>tez</b> va <b>oson</b> "
     "yarating, tahrirlang va boshqaring.\n\n"
-    "⚡️ <b>Imkoniyatlar</b>\n"
+    f"{pe(PE_FIRE, '🔥')} <b>Imkoniyatlar</b>\n"
     "├ 🎬 Tayyor shablonlar (Kino, Serial, Audio)\n"
     "├ 📢 Ommaviy xabar va statistika\n"
     "├ 🔒 Majburiy obuna\n"
     "└ 💫 Stars to'lov va referal bonus\n\n"
-    "👇 Boshlash uchun pastdagi menyudan foydalaning"
+    f"{pe(PE_IDEA, '💡')} Boshlash uchun pastdagi menyudan foydalaning"
 )
 
 SECURITY_CHECK = (
