@@ -27,8 +27,14 @@ MAIN_MENU = ReplyKeyboardMarkup(
             KeyboardButton(text="💳 Pul kiritish", style="primary"),
             KeyboardButton(text="📇 Hisobim"),
         ],
-        [KeyboardButton(text="💎 Referal"), KeyboardButton(text="📖 Qo'llanma")],
-        [KeyboardButton(text="🧧 Qo'llab-quvvatlash")],
+        [
+            KeyboardButton(text="💎 Referal"),
+            KeyboardButton(text="🎁 Promokod", style="success"),
+        ],
+        [
+            KeyboardButton(text="📖 Qo'llanma"),
+            KeyboardButton(text="🧧 Qo'llab-quvvatlash"),
+        ],
     ],
     resize_keyboard=True,
 )
