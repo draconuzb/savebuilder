@@ -42,13 +42,14 @@ uvicorn runtime.app:app --host 0.0.0.0 --port 8080
 ```
 > Webhook uchun HTTPS domen shart (Telegram talabi). Lokal test uchun `ngrok`/`cloudflared` bilan tunnel oching va `DOMAIN` ni o'sha URL ga qo'ying.
 
-## Holat (2026-07-11)
+## Holat (2026-07-11) — 🟢 JONLI: https://bot.wecreate.uz (@foidali_T_bot)
 - ✅ Bosqich 0: skelet — config, DB modellar, webhook mux, seed
-- ✅ Bosqich 1: bot yaratish FSM (kategoriya→shablon→token→tarif) + balans yechish + "Botlarim" boshqaruvi (to'xtatish/yoqish/o'chirish/uzaytirish) + super-admin `/topup` `/stats`
+- ✅ Bosqich 1: bot yaratish FSM + balans yechish + "Botlarim" boshqaruvi + super-admin `/topup` `/stats`
 - ✅ Bosqich 2: Kino shablon to'liq — user (kod→kino) + admin panel (kino qo'shish/o'chirish, statistika, broadcast, majburiy obuna CRUD)
-- ⏳ Bosqich 3: real to'lov (Click/Payme), referal bonus
+- ✅ Bosqich 3: **Telegram Stars (XTR) to'lov** (native, Click/Payme shart emas) + **referal tizim** (10% bonus) + CopyTextButton
 - ⏳ Bosqich 4: anti-bot WebApp captcha, boshqa shablonlar (Serial, Audio...)
 
-> ⚠️ Jonli test uchun **manager bot token** + **HTTPS domen** kerak. Token/domen kelgach 1 real bola bot ishga tushiriladi.
+**Deploy:** AWS EC2 (54.221.147.244), Postgres 15, Python 3.11, nginx + Cloudflare, systemd `savebuilder`.
+Yangilash: `bash deploy/redeploy.sh` (yoki `deploy/README.md`).
 
 Batafsil: [ROADMAP.md](ROADMAP.md)
