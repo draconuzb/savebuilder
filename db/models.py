@@ -81,7 +81,7 @@ class ChildBot(Base):
     template_id: Mapped[int] = mapped_column(ForeignKey("templates.id"))
     token_enc: Mapped[str | None] = mapped_column(Text)  # Fernet bilan shifrlangan
     bot_username: Mapped[str | None] = mapped_column(String(64))
-    bot_tg_id: Mapped[int | None] = mapped_column(BigInteger, index=True)
+    bot_tg_id: Mapped[int | None] = mapped_column(BigInteger, unique=True, index=True)
     webhook_secret: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     tariff_id: Mapped[int | None] = mapped_column(ForeignKey("tariffs.id"))
     status: Mapped[str] = mapped_column(String(24), default="pending_token", index=True)

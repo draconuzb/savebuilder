@@ -135,6 +135,20 @@ async def receive_token(message: Message, state: FSMContext) -> None:
         return
     await test_bot.session.close()
 
+    # Bir xil bot faqat BIR MARTA ulanishi mumkin (bitta bot = bitta webhook)
+    async with get_session() as s:
+        dup = await s.scalar(
+            select(ChildBot.id).where(ChildBot.bot_tg_id == me.id)
+        )
+    if dup:
+        await message.answer(
+            f"⚠️ <b>@{me.username}</b> allaqachon tizimga ulangan.\n\n"
+            "Har bir Telegram bot faqat <b>bitta</b> shablonga ulanadi. "
+            "Boshqa tur uchun @BotFather'dan <b>yangi bot</b> oching va uning tokenini yuboring."
+        )
+        await state.clear()
+        return
+
     await state.update_data(
         token=token, bot_username=me.username, bot_tg_id=me.id
     )
