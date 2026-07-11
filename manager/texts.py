@@ -48,22 +48,29 @@ WELCOME = premiumize(
 )
 
 SECURITY_CHECK = premiumize(
-    "🔐 <b>Xavfsizlik tekshiruvi</b>\n\n"
-    "Botdan foydalanish uchun bir martalik xavfsizlik tekshiruvidan o'ting. "
-    "Bu hisobingizni himoya qiladi va bir necha soniya oladi.\n\n"
-    "<i>Quyidagi tugmani bosing 👇</i>"
+    "🔐 <b>Xavfsizlik tekshiruvi</b>\n"
+    "━━━━━━━━━━━━━━━\n"
+    "Botdan foydalanish uchun bir martalik tekshiruvdan o'ting.\n"
+    "🛡 Bu hisobingizni himoya qiladi va bir necha soniya oladi.\n\n"
+    "👇 <i>Quyidagi tugmani bosing</i>"
 )
 
 FORCE_SUB = premiumize(
-    "‼️ <i>Botdan foydalanish uchun quyidagi kanallarga obuna bo'ling🙂</i>\n\n"
-    "<i>Keyin ✅ Tasdiqlashingiz kerak</i>"
+    "📢 <b>Majburiy obuna</b>\n"
+    "━━━━━━━━━━━━━━━\n"
+    "Botdan foydalanish uchun quyidagi kanal(lar)ga obuna bo'ling,\n"
+    "so'ng ✅ <b>Tekshirish</b> tugmasini bosing 👇"
 )
 
 NOT_SUBSCRIBED = "❌ Siz hali barcha kanallarga obuna bo'lmadingiz. Obuna bo'lib, qayta tekshiring."
 
-CHOOSE_CATEGORY = premiumize("🤖 <b>Bot yaratish</b>\n\nQuyidagi kategoriyalardan birini tanlang: 👇")
+CHOOSE_CATEGORY = premiumize(
+    "🤖 <b>Bot yaratish</b>\n"
+    "━━━━━━━━━━━━━━━\n"
+    "Qaysi turdagi bot yaratmoqchisiz?\nKategoriyani tanlang 👇"
+)
 
-CHOOSE_TEMPLATE = "📋 <b>Quyidagi botlardan birini tanlang:</b>"
+CHOOSE_TEMPLATE = premiumize("📋 <b>Shablonlar</b>\n━━━━━━━━━━━━━━━\nBirini tanlang 👇")
 
 ACCOUNT = premiumize(
     "📇 <b>Hisobim</b>\n"
@@ -96,13 +103,26 @@ GUIDE = premiumize(
     "Do'st taklif qilib «💎 Referal» orqali bonus oling.</i>"
 )
 
-SUPPORT = premiumize("🧧 <b>Qo'llab-quvvatlash</b>\n\nSavollar bo'lsa: @your_support_username")
-
-ASK_TOKEN = premiumize(
-    "🔑 <b>{template} yaratish</b>\n\n"
-    "@BotFather'dan olingan bot <b>tokenini</b> yuboring.\n"
-    "Masalan: <code>123456789:AAE...xyz</code>"
+SUPPORT = premiumize(
+    "🧧 <b>Qo'llab-quvvatlash</b>\n"
+    "━━━━━━━━━━━━━━━\n"
+    "Savol yoki muammo bo'lsa, biz yordam beramiz!\n\n"
+    "📨 Adminga yozing: @wecreate_admin\n"
+    "🕒 Ish vaqti: 09:00 — 21:00"
 )
 
-TOKEN_INVALID = "❌ Token noto'g'ri yoki ishlamayapti. Qayta yuboring yoki /bekor bosing."
-TOKEN_OK = premiumize("✅ Token qabul qilindi: @{username}\n\nEndi tarifni tanlang:")
+ASK_TOKEN = premiumize(
+    "🔑 <b>{template}</b> — token ulash\n"
+    "━━━━━━━━━━━━━━━\n"
+    "<b>1.</b> @BotFather'ga o'ting → /newbot → yangi bot yarating\n"
+    "<b>2.</b> Berilgan <b>tokenni</b> shu yerga yuboring 👇\n\n"
+    "<i>Masalan:</i> <code>123456789:AAE...xyz</code>"
+)
+
+TOKEN_INVALID = "❌ Token noto'g'ri yoki ishlamayapti. Qayta yuboring."
+TOKEN_OK = premiumize(
+    "✅ <b>Token qabul qilindi!</b>\n"
+    "🤖 @{username}\n"
+    "━━━━━━━━━━━━━━━\n"
+    "Endi <b>tarif</b>ni tanlang 👇"
+)

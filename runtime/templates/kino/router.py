@@ -38,7 +38,12 @@ def build_user_router(child_bot_id: int, spec: MediaSpec = KINO) -> Router:
         if not await child_is_subscribed(bot, child_bot_id, message.from_user.id):
             await message.answer("‼️ Botdan foydalanish uchun kanal(lar)ga obuna bo'ling.")
             return
-        await message.answer(f"{spec.emoji} Salom! <b>{spec.noun} kodini</b> yuboring.")
+        await message.answer(
+            f"{spec.emoji} <b>Assalomu alaykum!</b>\n"
+            "━━━━━━━━━━━━━━━\n"
+            f"Kerakli {spec.noun.lower()}ning <b>kodini</b> yuboring 👇\n"
+            "<i>Kod raqamlardan iborat bo'ladi.</i>"
+        )
 
     @router.message(F.text & ~F.text.startswith("/"))
     async def get_by_code(message: Message, bot: Bot) -> None:
@@ -57,7 +62,7 @@ def build_user_router(child_bot_id: int, spec: MediaSpec = KINO) -> Router:
             if film:
                 film.views += 1
         if film is None:
-            await message.answer("❌ Bunday kod topilmadi.")
+            await message.answer("❌ <b>Bunday kod topilmadi.</b>\nKodni tekshirib, qayta yuboring.")
             return
         await _send_media(message, film)
 

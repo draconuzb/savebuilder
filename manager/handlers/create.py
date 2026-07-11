@@ -36,7 +36,7 @@ async def start_create(message: Message, state: FSMContext) -> None:
 async def cancel(cq: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
     await cq.message.edit_text("❌ Bekor qilindi.")
-    await cq.message.answer("Asosiy menyu:", reply_markup=MAIN_MENU)
+    await cq.message.answer("🏠 Asosiy menyu", reply_markup=MAIN_MENU)
     await cq.answer()
 
 
