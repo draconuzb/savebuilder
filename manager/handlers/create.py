@@ -70,15 +70,17 @@ async def show_template(cq: CallbackQuery) -> None:
     if not tpl:
         await cq.answer("Shablon topilmadi.", show_alert=True)
         return
-    text = (
+    from manager.texts import premiumize
+
+    text = premiumize(
         f"{tpl.title}\n"
         f"━━━━━━━━━━━━━━━\n"
         f"{tpl.description or ''}\n\n"
         f"💰 Ochish narxi: <b>{tpl.create_price:,.0f}</b> so'm\n"
         f"💳 Oylik to'lov: <i>tarifga qarab</i>\n"
         f"🤖 Namuna: {tpl.example_username or '—'}\n"
-        f"🎫 Versiya: {tpl.version}"
-    ).replace(",", " ")
+        f"🎫 Versiya: {tpl.version}".replace(",", " ")
+    )
     await cq.message.edit_text(text, reply_markup=template_page_kb(code))
     await cq.answer()
 

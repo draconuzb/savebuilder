@@ -53,7 +53,9 @@ def _panel_kb() -> InlineKeyboardMarkup:
 async def admin_panel(message: Message) -> None:
     if not _is_super(message.from_user.id):
         return
-    await message.answer("👑 <b>Super-admin panel</b>", reply_markup=_panel_kb())
+    from manager.texts import premiumize
+
+    await message.answer(premiumize("👑 <b>Super-admin panel</b>"), reply_markup=_panel_kb())
 
 
 @router.callback_query(F.data == "adm:back")

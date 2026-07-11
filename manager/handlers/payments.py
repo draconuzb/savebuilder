@@ -41,11 +41,16 @@ def _packages_kb() -> InlineKeyboardMarkup:
 
 @router.message(F.text == "💳 Pul kiritish")
 async def topup_menu(message: Message) -> None:
+    from manager.texts import premiumize
+
     await message.answer(
-        "💳 <b>Pul kiritish</b>\n\n"
-        "Balansni <b>Telegram Stars</b> ⭐ orqali to'ldiring — "
-        "tez, komissiyasiz va bevosita Telegram ichida.\n\n"
-        "Paketni tanlang:",
+        premiumize(
+            "💰 <b>Pul kiritish</b>\n"
+            "━━━━━━━━━━━━━━━\n"
+            "Balansni <b>Telegram Stars</b> ⭐️ orqali to'ldiring — "
+            "tez, komissiyasiz va bevosita Telegram ichida.\n\n"
+            "Paketni tanlang:"
+        ),
         reply_markup=_packages_kb(),
     )
 
