@@ -45,8 +45,15 @@ async def lifespan(app: FastAPI):
     # Aktiv bola botlarni yuklash
     n = await load_all_active()
     log.info("%s ta aktiv bola bot yuklandi", n)
+    # Muddat nazorati (fon vazifasi)
+    import asyncio
+
+    from runtime.scheduler import scheduler_loop
+
+    scheduler_task = asyncio.create_task(scheduler_loop(manager_bot))
     yield
     # Yopilishda
+    scheduler_task.cancel()
     await manager_bot.session.close()
     for rb in registry.all_bots():
         await rb.bot.session.close()
