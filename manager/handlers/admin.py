@@ -18,7 +18,7 @@ from aiogram.types import (
 from sqlalchemy import func, select
 
 from core.config import get_settings
-from db.models import ChildBot, Payment, Template, User
+from db.models import ChildBot, Payment, PromoCode, Template, User
 from db.session import get_session
 from manager.handlers.start import get_or_create_user
 from manager.services.billing import top_up
@@ -42,6 +42,12 @@ class AdminTpl(StatesGroup):
     waiting_price = State()
 
 
+class AdminPromo(StatesGroup):
+    waiting_code = State()
+    waiting_amount = State()
+    waiting_max = State()
+
+
 def _is_super(tg_id: int) -> bool:
     return tg_id in get_settings().super_admin_ids
 
@@ -57,7 +63,10 @@ def _panel_kb() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="👥 Userlar", callback_data="adm:users", style="primary"),
                 InlineKeyboardButton(text="📦 Shablonlar", callback_data="adm:tpls"),
             ],
-            [InlineKeyboardButton(text="📢 Ommaviy xabar", callback_data="adm:cast", style="primary")],
+            [
+                InlineKeyboardButton(text="🎁 Promokodlar", callback_data="adm:promo", style="success"),
+                InlineKeyboardButton(text="📢 Xabar", callback_data="adm:cast", style="primary"),
+            ],
         ]
     )
 
@@ -479,6 +488,90 @@ async def user_bots(cq: CallbackQuery) -> None:
         lines.append(f"• @{b.bot_username or b.id} — {b.status}")
     await cq.message.edit_text("\n".join(lines), reply_markup=_back_kb(f"adm:user:{uid}"))
     await cq.answer()
+
+
+# ---- Promokodlar ----
+@router.callback_query(F.data == "adm:promo")
+async def promo_menu(cq: CallbackQuery, state: FSMContext) -> None:
+    if not _is_super(cq.from_user.id):
+        return
+    await state.clear()
+    async with get_session() as s:
+        promos = (await s.execute(select(PromoCode).order_by(PromoCode.id.desc()).limit(15))).scalars().all()
+    lines = ["🎁 <b>Promokodlar</b>", "━━━━━━━━━━━━━━━"]
+    if not promos:
+        lines.append("Hozircha promokod yo'q.")
+    for p in promos:
+        mark = "🟢" if p.is_active else "🔴"
+        lines.append(
+            f"{mark} <code>{p.code}</code> — {p.amount:,.0f} so'm · {p.used_count}/{p.max_uses}".replace(",", " ")
+        )
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="➕ Yangi promokod", callback_data="adm:promonew", style="success")],
+            [InlineKeyboardButton(text="⬅️ Orqaga", callback_data="adm:back")],
+        ]
+    )
+    await cq.message.edit_text("\n".join(lines), reply_markup=kb)
+    await cq.answer()
+
+
+@router.callback_query(F.data == "adm:promonew")
+async def promo_new(cq: CallbackQuery, state: FSMContext) -> None:
+    if not _is_super(cq.from_user.id):
+        return
+    await state.set_state(AdminPromo.waiting_code)
+    await cq.message.answer("🎁 Promokod nomini yuboring (masalan: BONUS50):")
+    await cq.answer()
+
+
+@router.message(AdminPromo.waiting_code, F.text)
+async def promo_code(message: Message, state: FSMContext) -> None:
+    if not _is_super(message.from_user.id):
+        return
+    code = message.text.strip().upper()
+    async with get_session() as s:
+        dup = await s.scalar(select(PromoCode.id).where(PromoCode.code == code))
+    if dup:
+        await message.answer("⚠️ Bu kod band. Boshqa nom yuboring.")
+        return
+    await state.update_data(code=code)
+    await state.set_state(AdminPromo.waiting_amount)
+    await message.answer("💰 Bonus miqdorini yuboring (so'm, masalan 50000):")
+
+
+@router.message(AdminPromo.waiting_amount, F.text)
+async def promo_amount(message: Message, state: FSMContext) -> None:
+    if not _is_super(message.from_user.id):
+        return
+    try:
+        amount = Decimal(message.text.strip())
+    except InvalidOperation:
+        await message.answer("❌ Noto'g'ri son.")
+        return
+    await state.update_data(amount=str(amount))
+    await state.set_state(AdminPromo.waiting_max)
+    await message.answer("👥 Necha marta ishlatilsin? (masalan 100):")
+
+
+@router.message(AdminPromo.waiting_max, F.text)
+async def promo_max(message: Message, state: FSMContext) -> None:
+    if not _is_super(message.from_user.id):
+        return
+    if not message.text.strip().isdigit():
+        await message.answer("❌ Butun son yuboring.")
+        return
+    data = await state.get_data()
+    await state.clear()
+    async with get_session() as s:
+        s.add(PromoCode(
+            code=data["code"], amount=Decimal(data["amount"]),
+            max_uses=int(message.text.strip()),
+        ))
+    await message.answer(
+        f"✅ Promokod yaratildi!\n"
+        f"🎁 <code>{data['code']}</code> — {Decimal(data['amount']):,.0f} so'm × {message.text.strip()}".replace(",", " ")
+    )
 
 
 # ---- Test balans (dev) ----
