@@ -61,11 +61,11 @@ def _list_kb(bots: list[ChildBot]) -> InlineKeyboardMarkup:
 def _manage_kb(bot: ChildBot) -> InlineKeyboardMarkup:
     rows = []
     if bot.status == ChildBotStatus.ACTIVE:
-        rows.append([InlineKeyboardButton(text="⏸ To'xtatish", callback_data=f"mb:stop:{bot.id}")])
+        rows.append([InlineKeyboardButton(text="⏸ To'xtatish", callback_data=f"mb:stop:{bot.id}", style="danger")])
     else:
-        rows.append([InlineKeyboardButton(text="▶️ Yoqish", callback_data=f"mb:start:{bot.id}")])
-    rows.append([InlineKeyboardButton(text="🔄 Tarifni uzaytirish", callback_data=f"mb:ext:{bot.id}")])
-    rows.append([InlineKeyboardButton(text="🗑 O'chirish", callback_data=f"mb:del:{bot.id}")])
+        rows.append([InlineKeyboardButton(text="▶️ Yoqish", callback_data=f"mb:start:{bot.id}", style="success")])
+    rows.append([InlineKeyboardButton(text="🔄 Tarifni uzaytirish", callback_data=f"mb:ext:{bot.id}", style="primary")])
+    rows.append([InlineKeyboardButton(text="🗑 O'chirish", callback_data=f"mb:del:{bot.id}", style="danger")])
     rows.append([InlineKeyboardButton(text="⬅️ Orqaga", callback_data="mb:list")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
@@ -178,7 +178,7 @@ async def del_confirm(cq: CallbackQuery) -> None:
     kb = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="✅ Ha, o'chir", callback_data=f"mb:delyes:{child_id}"),
+                InlineKeyboardButton(text="✅ Ha, o'chir", callback_data=f"mb:delyes:{child_id}", style="danger"),
                 InlineKeyboardButton(text="❌ Yo'q", callback_data=f"mb:view:{child_id}"),
             ]
         ]

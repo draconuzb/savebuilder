@@ -31,6 +31,7 @@ def _packages_kb() -> InlineKeyboardMarkup:
             InlineKeyboardButton(
                 text=f"{som:,} so'm  —  {stars} ⭐".replace(",", " "),
                 callback_data=f"topup:{stars}:{som}",
+                style="primary",
             )
         ]
         for stars, som in STAR_PACKAGES

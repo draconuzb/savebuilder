@@ -8,12 +8,12 @@ def admin_panel_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="➕ Kino qo'shish", callback_data="k:add"),
-                InlineKeyboardButton(text="🗑 Kino o'chirish", callback_data="k:del"),
+                InlineKeyboardButton(text="➕ Kino qo'shish", callback_data="k:add", style="success"),
+                InlineKeyboardButton(text="🗑 Kino o'chirish", callback_data="k:del", style="danger"),
             ],
             [
-                InlineKeyboardButton(text="📊 Statistika", callback_data="k:stats"),
-                InlineKeyboardButton(text="📢 Broadcast", callback_data="k:cast"),
+                InlineKeyboardButton(text="📊 Statistika", callback_data="k:stats", style="primary"),
+                InlineKeyboardButton(text="📢 Broadcast", callback_data="k:cast", style="primary"),
             ],
             [InlineKeyboardButton(text="🔒 Majburiy obuna", callback_data="k:fsub")],
         ]
@@ -33,7 +33,7 @@ def force_sub_manage_kb(channels: list) -> InlineKeyboardMarkup:
 
 def cancel_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(text="❌ Bekor", callback_data="k:cancel")]]
+        inline_keyboard=[[InlineKeyboardButton(text="❌ Bekor", callback_data="k:cancel", style="danger")]]
     )
 
 
@@ -41,8 +41,8 @@ def confirm_broadcast_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="✅ Yuborish", callback_data="k:castgo"),
-                InlineKeyboardButton(text="❌ Bekor", callback_data="k:cancel"),
+                InlineKeyboardButton(text="✅ Yuborish", callback_data="k:castgo", style="success"),
+                InlineKeyboardButton(text="❌ Bekor", callback_data="k:cancel", style="danger"),
             ]
         ]
     )
