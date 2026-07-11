@@ -84,20 +84,6 @@ async def cmd_start(message: Message, bot: Bot, command: CommandObject) -> None:
     await message.answer(texts.WELCOME, reply_markup=MAIN_MENU)
 
 
-@router.callback_query(F.data == "sec:start")
-async def sec_start(cq: CallbackQuery) -> None:
-    """MVP: WebApp captcha o'rniga to'g'ridan-to'g'ri tasdiqlash.
-    Keyingi bosqichda haqiqiy Mini App initData tekshiruvi qo'shiladi."""
-    async with get_session() as s:
-        res = await s.execute(select(User).where(User.tg_id == cq.from_user.id))
-        user = res.scalar_one_or_none()
-        if user:
-            user.is_verified = True
-    await cq.message.edit_text("✅ Tekshiruv muvaffaqiyatli o'tdi!")
-    await cq.message.answer(texts.WELCOME, reply_markup=MAIN_MENU)
-    await cq.answer()
-
-
 @router.callback_query(F.data == "sec:check")
 async def sec_check(cq: CallbackQuery, bot: Bot) -> None:
     if await is_subscribed(bot, cq.from_user.id):

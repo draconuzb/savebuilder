@@ -9,9 +9,11 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     KeyboardButton,
     ReplyKeyboardMarkup,
+    WebAppInfo,
 )
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from core.config import get_settings
 from core.constants import CATEGORY_TITLES
 
 # ---- Asosiy menyu (reply keyboard) — rangli ----
@@ -33,9 +35,10 @@ MAIN_MENU = ReplyKeyboardMarkup(
 
 
 def security_check_kb() -> InlineKeyboardMarkup:
+    url = f"{get_settings().domain.rstrip('/')}/webapp"
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="🔐 Tekshiruvni boshlash", callback_data="sec:start", style="primary")]
+            [InlineKeyboardButton(text="🔐 Tekshiruvni boshlash", web_app=WebAppInfo(url=url), style="primary")]
         ]
     )
 

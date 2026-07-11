@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>SaveBuilder — Xavfsizlik tizimi</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root { --bg:#0e1621; --card:#17212b; --accent:#2ea6ff; --ok:#4dd07a; --muted:#7d8b99; }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; }
+  body { background:var(--bg); color:#fff; font-family:-apple-system,Segoe UI,Roboto,sans-serif;
+         display:flex; align-items:center; justify-content:center; padding:24px; }
+  .card { width:100%; max-width:360px; background:var(--card); border-radius:20px; padding:28px 22px;
+          text-align:center; box-shadow:0 12px 40px rgba(0,0,0,.4); }
+  .brand { font-weight:700; font-size:20px; letter-spacing:.5px; }
+  .brand span { color:var(--accent); }
+  .sub { color:var(--muted); font-size:12px; letter-spacing:2px; text-transform:uppercase; margin-top:4px; }
+  .ring { width:150px; height:150px; margin:26px auto 10px; position:relative; }
+  .ring svg { transform:rotate(-90deg); }
+  .ring circle { fill:none; stroke-width:8; }
+  .ring .bg { stroke:#22303c; }
+  .ring .fg { stroke:var(--ok); stroke-linecap:round; transition:stroke-dashoffset .4s ease; }
+  .pct { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+         font-size:30px; font-weight:700; }
+  .check { color:var(--ok); font-size:64px; display:none; }
+  .status { font-size:18px; font-weight:600; margin-top:8px; }
+  .hint { color:var(--muted); font-size:13px; margin-top:6px; }
+  .steps { display:flex; justify-content:space-between; margin-top:22px; }
+  .step { flex:1; font-size:11px; color:var(--muted); }
+  .step .dot { width:26px; height:26px; border-radius:50%; background:#22303c; margin:0 auto 6px;
+               display:flex; align-items:center; justify-content:center; font-size:13px; transition:.3s; }
+  .step.done .dot { background:var(--ok); color:#0e1621; }
+  .foot { margin-top:20px; color:var(--muted); font-size:12px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">⚡ Save<span>Builder</span></div>
+    <div class="sub">Xavfsizlik tizimi</div>
+
+    <div class="ring">
+      <svg width="150" height="150" viewBox="0 0 150 150">
+        <circle class="bg" cx="75" cy="75" r="68"></circle>
+        <circle class="fg" cx="75" cy="75" r="68" id="fg"
+                stroke-dasharray="427" stroke-dashoffset="427"></circle>
+      </svg>
+      <div class="pct" id="pct">0%</div>
+      <div class="check" id="check">✓</div>
+    </div>
+
+    <div class="status" id="status">Tekshirilmoqda…</div>
+    <div class="hint" id="hint">Bu bir necha soniya oladi</div>
+
+    <div class="steps">
+      <div class="step" id="s1"><div class="dot">📱</div>Qurilma</div>
+      <div class="step" id="s2"><div class="dot">🛡</div>Tekshiruv</div>
+      <div class="step" id="s3"><div class="dot">✓</div>Tasdiq</div>
+    </div>
+
+    <div class="foot">🔒 SaveBuilder himoyasi bilan ishonchli</div>
+  </div>
+
+<script>
+(function () {
+  const tg = window.Telegram && window.Telegram.WebApp;
+  if (tg) { tg.ready(); tg.expand(); }
+
+  const C = 427, fg = document.getElementById('fg'), pctEl = document.getElementById('pct');
+  const statusEl = document.getElementById('status'), hintEl = document.getElementById('hint');
+  const checkEl = document.getElementById('check');
+  let pct = 0, verified = false;
+
+  function setPct(p){ pct=p; fg.style.strokeDashoffset = C - (C*p/100); pctEl.textContent = p+'%'; }
+  function done(id){ document.getElementById(id).classList.add('done'); }
+
+  // Progress animatsiyasi (backendni kutgan holda)
+  const anim = setInterval(() => {
+    if (pct < 90) { setPct(pct + 3); if (pct>30) done('s1'); if (pct>60) done('s2'); }
+  }, 90);
+
+  function succeed() {
+    clearInterval(anim); setPct(100); done('s1'); done('s2'); done('s3');
+    pctEl.style.display='none'; checkEl.style.display='block';
+    statusEl.textContent = 'Tasdiqlandi!'; hintEl.textContent = 'Botga qaytishingiz mumkin';
+    if (tg) tg.HapticFeedback && tg.HapticFeedback.notificationOccurred('success');
+    setTimeout(() => { if (tg) tg.close(); }, 1400);
+  }
+  function fail(msg) {
+    clearInterval(anim);
+    statusEl.textContent = 'Xatolik'; hintEl.textContent = msg || 'Qayta urinib ko’ring';
+  }
+
+  const initData = (tg && tg.initData) || '';
+  if (!initData) { fail('Telegram ichida oching'); return; }
+
+  fetch('/webapp/verify', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ init_data: initData })
+  })
+  .then(r => r.json())
+  .then(d => { if (d.ok) succeed(); else fail(d.error); })
+  .catch(() => fail('Ulanish xatosi'));
+})();
+</script>
+</body>
+</html>
