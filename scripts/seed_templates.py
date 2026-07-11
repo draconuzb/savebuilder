@@ -77,6 +77,15 @@ TEMPLATES = [
         "create_price": Decimal("40000"),
         "version": "1.0.0",
     },
+    {
+        "code": "group_welcome",
+        "category": TemplateCategory.GROUP,
+        "title": "👥 Guruh salomlashuvchi",
+        "description": "Guruhga qo'shilgan yangi a'zolarni avtomatik chiroyli kutib oladi.",
+        "example_username": None,
+        "create_price": Decimal("35000"),
+        "version": "1.0.0",
+    },
 ]
 
 TARIFFS = [
