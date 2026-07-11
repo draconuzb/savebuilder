@@ -49,6 +49,10 @@ async def lifespan(app: FastAPI):
         )
     except Exception as e:  # noqa: BLE001
         log.warning("Bot tavsifini o'rnatishda xato: %s", e)
+    # Qo'shimcha adminlarni keshga yuklash
+    from manager.handlers.admin import load_admins
+
+    await load_admins()
     # Manager webhook
     await manager_bot.set_webhook(settings.manager_webhook_url, drop_pending_updates=True)
     log.info("Manager webhook o'rnatildi: %s", settings.manager_webhook_url)

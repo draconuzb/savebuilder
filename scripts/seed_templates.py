@@ -104,6 +104,15 @@ TEMPLATES = [
         "create_price": Decimal("45000"),
         "version": "1.0.0",
     },
+    {
+        "code": "currency",
+        "category": TemplateCategory.FINANCE,
+        "title": "💱 Valyuta kursi bot",
+        "description": "Markaziy bank rasmiy valyuta kurslarini ko'rsatadi (USD, EUR, RUB...).",
+        "example_username": None,
+        "create_price": Decimal("40000"),
+        "version": "1.0.0",
+    },
 ]
 
 TARIFFS = [

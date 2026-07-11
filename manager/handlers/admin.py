@@ -48,8 +48,24 @@ class AdminPromo(StatesGroup):
     waiting_max = State()
 
 
+class AdminManage(StatesGroup):
+    waiting_admin = State()
+
+
+# Qo'shimcha adminlar (DB is_admin) — xotirada keshlangan
+_extra_admins: set[int] = set()
+
+
+async def load_admins() -> None:
+    """DB dagi is_admin userlarni keshga yuklash (startupda chaqiriladi)."""
+    async with get_session() as s:
+        rows = await s.execute(select(User.tg_id).where(User.is_admin.is_(True)))
+    _extra_admins.clear()
+    _extra_admins.update(r[0] for r in rows.all())
+
+
 def _is_super(tg_id: int) -> bool:
-    return tg_id in get_settings().super_admin_ids
+    return tg_id in get_settings().super_admin_ids or tg_id in _extra_admins
 
 
 def _panel_kb() -> InlineKeyboardMarkup:
@@ -67,6 +83,7 @@ def _panel_kb() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="🎁 Promokodlar", callback_data="adm:promo", style="success"),
                 InlineKeyboardButton(text="📢 Xabar", callback_data="adm:cast", style="primary"),
             ],
+            [InlineKeyboardButton(text="🛡 Adminlar", callback_data="adm:admins")],
         ]
     )
 
@@ -490,8 +507,81 @@ async def user_bots(cq: CallbackQuery) -> None:
     await cq.answer()
 
 
-# ---- Promokodlar ----
-@router.callback_query(F.data == "adm:promo")
+# ---- Adminlar boshqaruvi ----
+async def _render_admins(cq: CallbackQuery) -> None:
+    root = get_settings().super_admin_ids
+    async with get_session() as s:
+        db_admins = (await s.execute(select(User).where(User.is_admin.is_(True)))).scalars().all()
+    lines = ["🛡 <b>Adminlar</b>", "━━━━━━━━━━━━━━━", "<b>Asosiy (o'zgarmas):</b>"]
+    lines += [f"• <code>{a}</code>" for a in root]
+    lines.append("\n<b>Qo'shilgan:</b>")
+    if not db_admins:
+        lines.append("— yo'q —")
+    rows = []
+    for a in db_admins:
+        lines.append(f"• {a.full_name or a.tg_id} (<code>{a.tg_id}</code>)")
+        rows.append([InlineKeyboardButton(text=f"❌ {a.full_name or a.tg_id}", callback_data=f"adm:deladmin:{a.id}", style="danger")])
+    rows.append([InlineKeyboardButton(text="➕ Admin qo'shish", callback_data="adm:addadmin", style="success")])
+    rows.append([InlineKeyboardButton(text="⬅️ Orqaga", callback_data="adm:back")])
+    await cq.message.edit_text("\n".join(lines), reply_markup=InlineKeyboardMarkup(inline_keyboard=rows))
+
+
+@router.callback_query(F.data == "adm:admins")
+async def admins_menu(cq: CallbackQuery, state: FSMContext) -> None:
+    if not _is_super(cq.from_user.id):
+        return
+    await state.clear()
+    await _render_admins(cq)
+    await cq.answer()
+
+
+@router.callback_query(F.data == "adm:addadmin")
+async def add_admin_start(cq: CallbackQuery, state: FSMContext) -> None:
+    if not _is_super(cq.from_user.id):
+        return
+    await state.set_state(AdminManage.waiting_admin)
+    await cq.message.answer(
+        "🛡 Admin qilinadigan userning <b>tg_id</b> yoki <b>@username</b>'ini yuboring.\n"
+        "<i>(User avval botni ishga tushirgan bo'lishi kerak.)</i>"
+    )
+    await cq.answer()
+
+
+@router.message(AdminManage.waiting_admin, F.text)
+async def add_admin(message: Message, state: FSMContext) -> None:
+    if not _is_super(message.from_user.id):
+        return
+    await state.clear()
+    u = await _find_user(message.text)
+    if not u:
+        await message.answer("❌ User topilmadi (u botni ishga tushirmagan).")
+        return
+    async with get_session() as s:
+        obj = (await s.execute(select(User).where(User.id == u.id))).scalar_one()
+        obj.is_admin = True
+        tg_id = obj.tg_id
+        name = obj.full_name
+    _extra_admins.add(tg_id)
+    await message.answer(f"✅ <b>{name or tg_id}</b> admin qilindi.")
+    try:
+        await message.bot.send_message(tg_id, "🛡 Sizga admin huquqi berildi! /admin bosing.")
+    except Exception:  # noqa: BLE001
+        pass
+
+
+@router.callback_query(F.data.startswith("adm:deladmin:"))
+async def del_admin(cq: CallbackQuery) -> None:
+    if not _is_super(cq.from_user.id):
+        return
+    uid = int(cq.data.split(":")[2])
+    async with get_session() as s:
+        obj = (await s.execute(select(User).where(User.id == uid))).scalar_one_or_none()
+        if obj:
+            obj.is_admin = False
+            _extra_admins.discard(obj.tg_id)
+    await cq.answer("Admin huquqi olindi")
+    await _render_admins(cq)
+
 async def promo_menu(cq: CallbackQuery, state: FSMContext) -> None:
     if not _is_super(cq.from_user.id):
         return

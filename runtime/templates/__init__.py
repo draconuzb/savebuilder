@@ -7,6 +7,7 @@ from aiogram import Dispatcher
 
 from core.storage import get_storage
 from runtime.templates.anon.router import build_anon_router
+from runtime.templates.finance.router import build_finance_router
 from runtime.templates.group.router import build_group_router
 from runtime.templates.kino.admin import build_admin_router
 from runtime.templates.poll.router import build_poll_router
@@ -42,6 +43,12 @@ def _group_dispatcher(child_bot_id: int, owner_tg_id: int) -> Dispatcher:
     return dp
 
 
+def _finance_dispatcher(child_bot_id: int, owner_tg_id: int) -> Dispatcher:
+    dp = Dispatcher(storage=get_storage())
+    dp.include_router(build_finance_router(child_bot_id, owner_tg_id))
+    return dp
+
+
 def _poll_dispatcher_builder(is_quiz: bool) -> Callable[[int, int], Dispatcher]:
     def build(child_bot_id: int, owner_tg_id: int) -> Dispatcher:
         dp = Dispatcher(storage=get_storage())
@@ -63,4 +70,5 @@ TEMPLATE_BUILDERS: dict[str, Callable[[int, int], Dispatcher]] = {
     "group_welcome": _group_dispatcher,
     "poll": _poll_dispatcher_builder(is_quiz=False),
     "quiz": _poll_dispatcher_builder(is_quiz=True),
+    "currency": _finance_dispatcher,
 }

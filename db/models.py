@@ -37,6 +37,7 @@ class User(Base):
     referred_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     is_blocked: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     bots: Mapped[list["ChildBot"]] = relationship(back_populates="owner")
