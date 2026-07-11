@@ -5,6 +5,8 @@ emoji yubora oladi. premiumize() har matndagi tanish emojini custom emojiga ayla
 custom_emoji_id lar getForumTopicIconStickers dan (tekin, animatsiyali)."""
 from __future__ import annotations
 
+import re
+
 # Emoji belgisi → custom_emoji_id. Variatsiya selektorli (️) variantlar BIRINCHI
 # turishi kerak (aks holda oddiy variant ularni buzadi).
 EMOJI_IDS: dict[str, str] = {
@@ -26,8 +28,17 @@ EMOJI_IDS: dict[str, str] = {
 }
 
 
+_TAG_RE = re.compile(r'<tg-emoji emoji-id="\d+">(.*?)</tg-emoji>')
+
+
 def premiumize(text: str) -> str:
-    """Matndagi tanish emojilarni premium (custom) emojiga aylantiradi."""
+    """Matndagi tanish emojilarni premium (custom) emojiga aylantiradi.
+
+    Idempotent: avval mavjud <tg-emoji> teglarni yechadi, so'ng qayta o'raydi
+    (ikki marta qo'llansa ichma-ich tag bo'lib qolmaydi)."""
+    if not text:
+        return text
+    text = _TAG_RE.sub(r"\1", text)  # mavjud teglarni yechish
     for ch, cid in EMOJI_IDS.items():
         if ch in text:
             text = text.replace(ch, f'<tg-emoji emoji-id="{cid}">{ch}</tg-emoji>')

@@ -10,11 +10,16 @@ from core.storage import get_storage
 
 
 def build_manager_bot() -> Bot:
+    from manager.premium_mw import PremiumEmojiMiddleware
+
     settings = get_settings()
-    return Bot(
+    bot = Bot(
         token=settings.manager_bot_token,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
+    # Har bir chiquvchi xabar matni avtomatik premium emoji oladi
+    bot.session.middleware(PremiumEmojiMiddleware())
+    return bot
 
 
 def build_manager_dispatcher() -> Dispatcher:
