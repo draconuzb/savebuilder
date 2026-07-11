@@ -5,7 +5,6 @@ import logging
 import secrets
 
 from aiogram import Bot, F, Router
-from aiogram.exceptions import TelegramUnauthorizedError
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy import select
@@ -118,13 +117,15 @@ async def ask_token(cq: CallbackQuery, state: FSMContext) -> None:
 async def receive_token(message: Message, state: FSMContext) -> None:
     token = message.text.strip()
     # Tokenni tekshirish (getMe)
-    test_bot = Bot(token=token)
+    test_bot = None
     try:
+        test_bot = Bot(token=token)
         me = await test_bot.get_me()
-    except (TelegramUnauthorizedError, Exception) as e:  # noqa: BLE001
+    except Exception as e:  # noqa: BLE001  (TokenValidationError, Unauthorized, network...)
         log.info("Token validatsiya xato: %s", e)
         await message.answer(texts.TOKEN_INVALID)
-        await test_bot.session.close()
+        if test_bot is not None:
+            await test_bot.session.close()
         return
     await test_bot.session.close()
 
@@ -147,6 +148,7 @@ async def choose_tariff(cq: CallbackQuery, state: FSMContext, bot: Bot) -> None:
     data = await state.get_data()
 
     from security.crypto import encrypt_token  # lokal import (sikl oldini olish)
+    from manager.services.billing import InsufficientBalance, charge, tariff_expiry
 
     async with get_session() as s:
         user = (
@@ -154,6 +156,28 @@ async def choose_tariff(cq: CallbackQuery, state: FSMContext, bot: Bot) -> None:
         ).scalar_one_or_none()
         if user is None:
             await cq.answer("Iltimos /start bosing.", show_alert=True)
+            return
+
+        template = (
+            await s.execute(select(Template).where(Template.id == data["template_id"]))
+        ).scalar_one()
+        tariff = (
+            await s.execute(select(Tariff).where(Tariff.id == tariff_id))
+        ).scalar_one()
+
+        total = template.create_price + tariff.price
+        try:
+            await charge(
+                s, user, total, purpose="create_bot", child_bot_id=None
+            )
+        except InsufficientBalance as e:
+            await cq.answer()
+            await cq.message.answer(
+                f"❌ Balans yetarli emas.\n"
+                f"Kerak: <b>{e.need:,.0f}</b> so'm · Bor: <b>{e.have:,.0f}</b> so'm\n"
+                f"«💳 Pul kiritish» orqali balansni to'ldiring."
+            )
+            await state.clear()
             return
 
         secret = secrets.token_urlsafe(24)
@@ -166,6 +190,7 @@ async def choose_tariff(cq: CallbackQuery, state: FSMContext, bot: Bot) -> None:
             webhook_secret=secret,
             tariff_id=tariff_id,
             status=ChildBotStatus.ACTIVE,
+            expires_at=tariff_expiry(tariff.duration_days),
             config={},
         )
         s.add(child)

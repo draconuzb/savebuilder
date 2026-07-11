@@ -272,15 +272,18 @@ Kategoriya tanlash (inline)
 - [ ] FastAPI `/wh/manager` + manager `/start`+menyu (bo'sh)
 - [ ] Seed: shablonlar + tariflar
 
-### Bosqich 1 — Manager MVP (2-4 kun)
-- [ ] Bot yaratish FSM: kategoriya→shablon→token→tarif
-- [ ] `child_bots` yozish, token validatsiya, balans (test)
-- [ ] "Botlarim", "Hisobim", "Pul kiritish" (manual)
+### Bosqich 1 — Manager MVP (2-4 kun) ✅ (kod tayyor)
+- [x] Bot yaratish FSM: kategoriya→shablon→token→tarif
+- [x] `child_bots` yozish, token validatsiya (getMe), balans yechish (test)
+- [x] "Botlarim" boshqaruvi: ko'rish / to'xtatish / yoqish / o'chirish / tarif uzaytirish
+- [x] "Hisobim", super-admin `/topup`, `/stats` (test)
+- [ ] Real to'lov ("Pul kiritish" hozircha placeholder)
 
-### Bosqich 2 — Webhook mux + Kino shablon (3-5 kun)
-- [ ] `runtime/router.py` + `registry.py` + `loader.py` (setWebhook)
-- [ ] Kino shablon: user kod oqimi + admin panel + majburiy obuna
-- [ ] Bitta real bola bot jonli test (token seniki)
+### Bosqich 2 — Webhook mux + Kino shablon (3-5 kun) ✅ (kod tayyor)
+- [x] `runtime/registry.py` + `loader.py` (setWebhook) + `app.py` mux
+- [x] Kino shablon user oqimi: kod → kino, majburiy obuna
+- [x] Kino admin panel: kino qo'shish/o'chirish, statistika, broadcast, majburiy obuna CRUD
+- [ ] Bitta real bola bot jonli test (token + domen kerak)
 
 ### Bosqich 3 — Monetizatsiya (3-5 kun)
 - [ ] Click/Payme integratsiya, obuna muddati, expired holati

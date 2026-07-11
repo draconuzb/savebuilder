@@ -1,12 +1,14 @@
 """Manager handler routerlarini yig'ish."""
 from aiogram import Router
 
-from manager.handlers import create, menu, start
+from manager.handlers import admin, create, menu, my_bots, start
 
 
 def build_manager_router() -> Router:
     router = Router(name="manager-root")
     router.include_router(start.router)
+    router.include_router(admin.router)
     router.include_router(create.router)
+    router.include_router(my_bots.router)
     router.include_router(menu.router)
     return router

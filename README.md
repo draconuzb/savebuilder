@@ -43,10 +43,12 @@ uvicorn runtime.app:app --host 0.0.0.0 --port 8080
 > Webhook uchun HTTPS domen shart (Telegram talabi). Lokal test uchun `ngrok`/`cloudflared` bilan tunnel oching va `DOMAIN` ni o'sha URL ga qo'ying.
 
 ## Holat (2026-07-11)
-- ✅ Bosqich 0: skelet — config, DB modellar, manager /start+menyu, webhook mux, Kino shablon skeleti, seed
-- ⏳ Bosqich 1: bot yaratish FSM to'liq test
-- ⏳ Bosqich 2: real bola bot jonli test (token bilan)
-- ⏳ Bosqich 3: to'lov (Click/Payme), referal
-- ⏳ Bosqich 4: anti-bot WebApp, boshqa shablonlar
+- ✅ Bosqich 0: skelet — config, DB modellar, webhook mux, seed
+- ✅ Bosqich 1: bot yaratish FSM (kategoriya→shablon→token→tarif) + balans yechish + "Botlarim" boshqaruvi (to'xtatish/yoqish/o'chirish/uzaytirish) + super-admin `/topup` `/stats`
+- ✅ Bosqich 2: Kino shablon to'liq — user (kod→kino) + admin panel (kino qo'shish/o'chirish, statistika, broadcast, majburiy obuna CRUD)
+- ⏳ Bosqich 3: real to'lov (Click/Payme), referal bonus
+- ⏳ Bosqich 4: anti-bot WebApp captcha, boshqa shablonlar (Serial, Audio...)
+
+> ⚠️ Jonli test uchun **manager bot token** + **HTTPS domen** kerak. Token/domen kelgach 1 real bola bot ishga tushiriladi.
 
 Batafsil: [ROADMAP.md](ROADMAP.md)

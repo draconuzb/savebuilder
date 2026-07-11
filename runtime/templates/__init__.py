@@ -7,13 +7,16 @@ from aiogram import Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
 
 from core.config import get_settings
-from runtime.templates.kino.router import build_kino_router
+from runtime.templates.kino.admin import build_admin_router
+from runtime.templates.kino.router import build_user_router
 
 
 def _build_kino_dispatcher(child_bot_id: int, owner_tg_id: int) -> Dispatcher:
     storage = RedisStorage.from_url(get_settings().redis_url)
     dp = Dispatcher(storage=storage)
-    dp.include_router(build_kino_router(child_bot_id, owner_tg_id))
+    # Admin router (egaga) birinchi — FSM va /admin ustuvor
+    dp.include_router(build_admin_router(child_bot_id, owner_tg_id))
+    dp.include_router(build_user_router(child_bot_id))
     return dp
 
 
