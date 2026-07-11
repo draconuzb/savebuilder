@@ -14,3 +14,4 @@ class MediaSpec:
 
 KINO = MediaSpec(media_type="video", emoji="🎬", noun="Kino", ask_word="video")
 AUDIO = MediaSpec(media_type="audio", emoji="🎵", noun="Audio", ask_word="audio")
+SERIAL = MediaSpec(media_type="video", emoji="🎞", noun="Serial", ask_word="video")

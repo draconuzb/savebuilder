@@ -8,7 +8,7 @@ from aiogram import Dispatcher
 from core.storage import get_storage
 from runtime.templates.kino.admin import build_admin_router
 from runtime.templates.kino.router import build_user_router
-from runtime.templates.media_spec import AUDIO, KINO, MediaSpec
+from runtime.templates.media_spec import AUDIO, KINO, SERIAL, MediaSpec
 
 
 def _media_dispatcher_builder(spec: MediaSpec) -> Callable[[int, int], Dispatcher]:
@@ -27,4 +27,5 @@ def _media_dispatcher_builder(spec: MediaSpec) -> Callable[[int, int], Dispatche
 TEMPLATE_BUILDERS: dict[str, Callable[[int, int], Dispatcher]] = {
     "kino": _media_dispatcher_builder(KINO),
     "audio_pechat": _media_dispatcher_builder(AUDIO),
+    "serial": _media_dispatcher_builder(SERIAL),
 }
