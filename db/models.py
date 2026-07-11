@@ -85,7 +85,7 @@ class ChildBot(Base):
     tariff_id: Mapped[int | None] = mapped_column(ForeignKey("tariffs.id"))
     status: Mapped[str] = mapped_column(String(24), default="pending_token", index=True)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    config: Mapped[dict | None] = mapped_column(JSONB, default=dict)
+    config: Mapped[dict | None] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     owner: Mapped["User"] = relationship(back_populates="bots")
