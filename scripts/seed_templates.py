@@ -68,6 +68,15 @@ TEMPLATES = [
         "create_price": Decimal("65000"),
         "version": "1.0.0",
     },
+    {
+        "code": "anon",
+        "category": TemplateCategory.SERVICE,
+        "title": "🕵️ Anonim xabar bot",
+        "description": "Foydalanuvchilar sizga anonim xabar yozadi, siz anonim javob berasiz.",
+        "example_username": None,
+        "create_price": Decimal("40000"),
+        "version": "1.0.0",
+    },
 ]
 
 TARIFFS = [
