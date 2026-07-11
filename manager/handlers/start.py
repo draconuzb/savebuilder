@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 
 from aiogram import Bot, F, Router
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandObject, CommandStart
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy import select
 
@@ -18,15 +18,33 @@ router = Router(name="manager-start")
 log = logging.getLogger(__name__)
 
 
-async def get_or_create_user(message: Message) -> User:
+def _parse_referrer_tg_id(args: str | None) -> int | None:
+    """/start ref<tg_id> dan taklif qilgan tg_id ni ajratadi."""
+    if args and args.startswith("ref"):
+        try:
+            return int(args[3:])
+        except ValueError:
+            return None
+    return None
+
+
+async def get_or_create_user(message: Message, referrer_tg_id: int | None = None) -> User:
     async with get_session() as s:
         res = await s.execute(select(User).where(User.tg_id == message.from_user.id))
         user = res.scalar_one_or_none()
         if user is None:
+            referred_by = None
+            if referrer_tg_id and referrer_tg_id != message.from_user.id:
+                ref = (
+                    await s.execute(select(User).where(User.tg_id == referrer_tg_id))
+                ).scalar_one_or_none()
+                if ref:
+                    referred_by = ref.id
             user = User(
                 tg_id=message.from_user.id,
                 username=message.from_user.username,
                 full_name=message.from_user.full_name,
+                referred_by=referred_by,
             )
             s.add(user)
             await s.flush()
@@ -50,8 +68,8 @@ async def is_subscribed(bot: Bot, tg_id: int) -> bool:
 
 
 @router.message(CommandStart())
-async def cmd_start(message: Message, bot: Bot) -> None:
-    user = await get_or_create_user(message)
+async def cmd_start(message: Message, bot: Bot, command: CommandObject) -> None:
+    user = await get_or_create_user(message, _parse_referrer_tg_id(command.args))
 
     if not user.is_verified:
         await message.answer(texts.SECURITY_CHECK, reply_markup=security_check_kb())

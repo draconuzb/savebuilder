@@ -23,6 +23,15 @@ manager_dp = build_manager_dispatcher()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Bot buyruqlari menyusi
+    from aiogram.types import BotCommand
+
+    await manager_bot.set_my_commands(
+        [
+            BotCommand(command="start", description="🏠 Botni ishga tushirish"),
+            BotCommand(command="help", description="📖 Yordam"),
+        ]
+    )
     # Manager webhook
     await manager_bot.set_webhook(settings.manager_webhook_url, drop_pending_updates=True)
     log.info("Manager webhook o'rnatildi: %s", settings.manager_webhook_url)

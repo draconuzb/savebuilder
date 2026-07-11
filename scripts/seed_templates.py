@@ -44,7 +44,7 @@ TEMPLATES = [
 ]
 
 TARIFFS = [
-    {"name": "Start", "speed_x": 2, "duration_days": 30, "price": Decimal("0")},
+    {"name": "Start", "speed_x": 2, "duration_days": 30, "price": Decimal("15000")},
     {"name": "Standart", "speed_x": 4, "duration_days": 30, "price": Decimal("20000")},
     {"name": "Pro", "speed_x": 6, "duration_days": 30, "price": Decimal("25000")},
     {"name": "Turbo", "speed_x": 8, "duration_days": 30, "price": Decimal("35000")},
