@@ -115,6 +115,7 @@ class KinoContent(Base):
     code: Mapped[str] = mapped_column(String(64))
     title: Mapped[str | None] = mapped_column(String(256))
     file_id: Mapped[str | None] = mapped_column(Text)
+    media_type: Mapped[str] = mapped_column(String(16), default="video")  # video/audio/document
     source_channel_id: Mapped[int | None] = mapped_column(BigInteger)
     source_msg_id: Mapped[int | None] = mapped_column(BigInteger)
     views: Mapped[int] = mapped_column(Integer, default=0)

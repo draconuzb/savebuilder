@@ -1,4 +1,4 @@
-"""Kino shablon — oxirgi user oqimi (kod → kino)."""
+"""Media-kod shabloni — oxirgi user oqimi (kod → media). Kino/Audio umumiy."""
 from __future__ import annotations
 
 from aiogram import Bot, F, Router
@@ -9,10 +9,20 @@ from sqlalchemy import select
 from db.models import ChildUser, KinoContent
 from db.session import get_session
 from runtime.templates.base import child_is_subscribed
+from runtime.templates.media_spec import KINO, MediaSpec
 
 
-def build_user_router(child_bot_id: int) -> Router:
-    router = Router(name=f"kino-user-{child_bot_id}")
+async def _send_media(message: Message, film: KinoContent) -> None:
+    if film.media_type == "audio":
+        await message.answer_audio(film.file_id, caption=film.title or "🎵")
+    elif film.media_type == "document":
+        await message.answer_document(film.file_id, caption=film.title or "📄")
+    else:
+        await message.answer_video(film.file_id, caption=film.title or "🎬")
+
+
+def build_user_router(child_bot_id: int, spec: MediaSpec = KINO) -> Router:
+    router = Router(name=f"media-user-{child_bot_id}")
 
     @router.message(CommandStart())
     async def start(message: Message, bot: Bot) -> None:
@@ -28,7 +38,7 @@ def build_user_router(child_bot_id: int) -> Router:
         if not await child_is_subscribed(bot, child_bot_id, message.from_user.id):
             await message.answer("‼️ Botdan foydalanish uchun kanal(lar)ga obuna bo'ling.")
             return
-        await message.answer("🎬 Salom! Kino <b>kodini</b> yuboring.")
+        await message.answer(f"{spec.emoji} Salom! <b>{spec.noun} kodini</b> yuboring.")
 
     @router.message(F.text & ~F.text.startswith("/"))
     async def get_by_code(message: Message, bot: Bot) -> None:
@@ -49,6 +59,6 @@ def build_user_router(child_bot_id: int) -> Router:
         if film is None:
             await message.answer("❌ Bunday kod topilmadi.")
             return
-        await message.answer_video(film.file_id, caption=film.title or "🎬")
+        await _send_media(message, film)
 
     return router

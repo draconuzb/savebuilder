@@ -19,12 +19,15 @@ from runtime.templates.kino.keyboards import (
     force_sub_manage_kb,
 )
 from runtime.templates.kino.states import AddKino, Broadcast, DelKino, ForceSub
+from runtime.templates.media_spec import KINO, MediaSpec
 
 log = logging.getLogger(__name__)
 
 
-def build_admin_router(child_bot_id: int, owner_tg_id: int) -> Router:
-    router = Router(name=f"kino-admin-{child_bot_id}")
+def build_admin_router(
+    child_bot_id: int, owner_tg_id: int, spec: MediaSpec = KINO
+) -> Router:
+    router = Router(name=f"media-admin-{child_bot_id}")
     # Butun router faqat egaga
     router.message.filter(F.from_user.id == owner_tg_id)
     router.callback_query.filter(F.from_user.id == owner_tg_id)
@@ -43,7 +46,7 @@ def build_admin_router(child_bot_id: int, owner_tg_id: int) -> Router:
             )
         return (
             f"⚙️ <b>Admin panel</b>\n\n"
-            f"🎬 Kinolar: <b>{films or 0}</b>\n"
+            f"{spec.emoji} {spec.noun}lar: <b>{films or 0}</b>\n"
             f"👥 Foydalanuvchilar: <b>{users or 0}</b>"
         )
 
@@ -64,12 +67,13 @@ def build_admin_router(child_bot_id: int, owner_tg_id: int) -> Router:
         await cq.message.edit_text(await panel_text(), reply_markup=admin_panel_kb())
         await cq.answer("Bekor qilindi")
 
-    # ---- Kino qo'shish ----
+    # ---- Kontent qo'shish ----
     @router.callback_query(F.data == "k:add")
     async def add_start(cq: CallbackQuery, state: FSMContext) -> None:
         await state.set_state(AddKino.waiting_code)
         await cq.message.edit_text(
-            "Yangi kino uchun <b>kod</b> yuboring (masalan: 123):", reply_markup=cancel_kb()
+            f"Yangi {spec.noun} uchun <b>kod</b> yuboring (masalan: 123):",
+            reply_markup=cancel_kb(),
         )
         await cq.answer()
 
@@ -87,10 +91,17 @@ def build_admin_router(child_bot_id: int, owner_tg_id: int) -> Router:
             return
         await state.update_data(code=code)
         await state.set_state(AddKino.waiting_video)
-        await message.answer("Endi <b>video</b> faylini yuboring (sarlavha ixtiyoriy):")
+        await message.answer(f"Endi <b>{spec.ask_word}</b> faylini yuboring (sarlavha ixtiyoriy):")
 
-    @router.message(AddKino.waiting_video, F.video)
-    async def add_video(message: Message, state: FSMContext) -> None:
+    @router.message(AddKino.waiting_video, F.video | F.audio | F.document)
+    async def add_media(message: Message, state: FSMContext) -> None:
+        # Yuborilgan media turini aniqlash
+        if message.video:
+            file_id, mtype = message.video.file_id, "video"
+        elif message.audio:
+            file_id, mtype = message.audio.file_id, "audio"
+        else:
+            file_id, mtype = message.document.file_id, "document"
         data = await state.get_data()
         async with get_session() as s:
             s.add(
@@ -98,18 +109,19 @@ def build_admin_router(child_bot_id: int, owner_tg_id: int) -> Router:
                     child_bot_id=child_bot_id,
                     code=data["code"],
                     title=message.caption,
-                    file_id=message.video.file_id,
+                    file_id=file_id,
+                    media_type=mtype,
                 )
             )
         await state.clear()
         await message.answer(
-            f"✅ Kino saqlandi. Kod: <code>{data['code']}</code>",
+            f"✅ {spec.noun} saqlandi. Kod: <code>{data['code']}</code>",
             reply_markup=admin_panel_kb(),
         )
 
     @router.message(AddKino.waiting_video)
-    async def add_video_invalid(message: Message) -> None:
-        await message.answer("❌ Iltimos <b>video</b> yuboring.")
+    async def add_media_invalid(message: Message) -> None:
+        await message.answer(f"❌ Iltimos <b>{spec.ask_word}</b> yuboring.")
 
     # ---- Kino o'chirish ----
     @router.callback_query(F.data == "k:del")
@@ -160,10 +172,10 @@ def build_admin_router(child_bot_id: int, owner_tg_id: int) -> Router:
             )
         lines = [
             "📊 <b>Statistika</b>\n",
-            f"🎬 Kinolar: <b>{films or 0}</b>",
+            f"{spec.emoji} {spec.noun}lar: <b>{films or 0}</b>",
             f"👥 Foydalanuvchilar: <b>{users or 0}</b>",
             f"👁 Jami ko'rishlar: <b>{total_views or 0}</b>\n",
-            "🔝 <b>Top kinolar:</b>",
+            f"🔝 <b>Top {spec.noun}lar:</b>",
         ]
         for code, title, views in top.all():
             lines.append(f"• <code>{code}</code> {title or ''} — {views} ko'rish")
