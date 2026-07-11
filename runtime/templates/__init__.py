@@ -11,6 +11,10 @@ from runtime.templates.kino.router import build_user_router
 from runtime.templates.media_spec import AUDIO, KINO, SERIAL, MediaSpec
 
 
+def _video(noun: str, emoji: str) -> MediaSpec:
+    return MediaSpec(media_type="video", emoji=emoji, noun=noun, ask_word="video")
+
+
 def _media_dispatcher_builder(spec: MediaSpec) -> Callable[[int, int], Dispatcher]:
     """Berilgan media-spec uchun (child_bot_id, owner_tg_id) -> Dispatcher quruvchi."""
 
@@ -28,4 +32,7 @@ TEMPLATE_BUILDERS: dict[str, Callable[[int, int], Dispatcher]] = {
     "kino": _media_dispatcher_builder(KINO),
     "audio_pechat": _media_dispatcher_builder(AUDIO),
     "serial": _media_dispatcher_builder(SERIAL),
+    "kino_pro": _media_dispatcher_builder(_video("Kino", "🎬")),
+    "video_bot": _media_dispatcher_builder(_video("Video", "📹")),
+    "drama": _media_dispatcher_builder(_video("Drama", "🎭")),
 }

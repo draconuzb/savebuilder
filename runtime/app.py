@@ -39,6 +39,16 @@ async def lifespan(app: FastAPI):
             BotCommand(command="help", description="📖 Yordam"),
         ]
     )
+    try:
+        await manager_bot.set_my_description(
+            "🤖 Kod yozmasdan o'z Telegram botingizni yarating!\n"
+            "Kino, Serial, Audio botlar — tez, oson, professional."
+        )
+        await manager_bot.set_my_short_description(
+            "Kod yozmasdan Telegram bot yaratish platformasi 🚀"
+        )
+    except Exception as e:  # noqa: BLE001
+        log.warning("Bot tavsifini o'rnatishda xato: %s", e)
     # Manager webhook
     await manager_bot.set_webhook(settings.manager_webhook_url, drop_pending_updates=True)
     log.info("Manager webhook o'rnatildi: %s", settings.manager_webhook_url)

@@ -1,14 +1,16 @@
 """Manager bot matnlari (uz). Premium emoji shu yerda qo'shiladi."""
 
 WELCOME = (
-    "🤖 <b>SaveBuilder — Telegram botlar yaratish uchun qulay platforma.</b>\n\n"
-    "Bu platforma orqali siz hech qanday kod yozmasdan o'z Telegram "
-    "botlaringizni tez va oson yaratishingiz, ularni tahrirlashingiz "
-    "hamda boshqarishingiz mumkin.\n\n"
-    "⚡️ <b>Nega aynan SaveBuilder?</b>\n"
-    "• <b>Tez va oson</b> — Hech qanday kod yozmasdan o'z botingizni yaratishingiz mumkin.\n"
-    "• <b>Qulay interfeys</b> — Foydalanish oson va qulay interfeys.\n"
-    "• <b>Yaxshi qo'llab-quvvatlash</b> — Doimiy va tezkor qo'llab-quvvatlash xizmati!"
+    "🤖 <b>SaveBuilder</b> — botlar yaratish platformasi\n"
+    "━━━━━━━━━━━━━━━\n"
+    "Kod yozmasdan o'z Telegram botingizni <b>tez</b> va <b>oson</b> "
+    "yarating, tahrirlang va boshqaring.\n\n"
+    "⚡️ <b>Imkoniyatlar</b>\n"
+    "├ 🎬 Tayyor shablonlar (Kino, Serial, Audio)\n"
+    "├ 📢 Ommaviy xabar va statistika\n"
+    "├ 🔒 Majburiy obuna\n"
+    "└ 💫 Stars to'lov va referal bonus\n\n"
+    "👇 Boshlash uchun pastdagi menyudan foydalaning"
 )
 
 SECURITY_CHECK = (
@@ -30,11 +32,12 @@ CHOOSE_CATEGORY = "🤖 <b>Bot yaratish</b>\n\nQuyidagi kategoriyalardan birini 
 CHOOSE_TEMPLATE = "📋 <b>Quyidagi botlardan birini tanlang:</b>"
 
 ACCOUNT = (
-    "📇 <b>Hisobim</b>\n\n"
-    "👤 Ism: {name}\n"
-    "🆔 ID: <code>{tg_id}</code>\n"
+    "📇 <b>Hisobim</b>\n"
+    "━━━━━━━━━━━━━━━\n"
+    "👤 <b>{name}</b>\n"
+    "🆔 <code>{tg_id}</code>\n\n"
     "💰 Balans: <b>{balance:,.0f}</b> so'm\n"
-    "🤖 Botlar soni: <b>{bots}</b>"
+    "🤖 Botlar: <b>{bots}</b> ta"
 )
 
 MY_BOTS_EMPTY = "🤖 <b>Botlarim</b>\n\nSizda hali yaratilgan bot yo'q. «➕ Bot yaratish» tugmasidan foydalaning."
@@ -53,11 +56,14 @@ REFERRAL = (
 )
 
 GUIDE = (
-    "📖 <b>Qo'llanma</b>\n\n"
-    "1. «➕ Bot yaratish» → kategoriya va shablon tanlang.\n"
-    "2. @BotFather'dan olingan tokenni yuboring.\n"
-    "3. Tarifni tanlab, balansdan to'lang.\n"
-    "4. Botingiz tayyor! «🤖 Botlarim» orqali boshqaring."
+    "📖 <b>Qo'llanma</b>\n"
+    "━━━━━━━━━━━━━━━\n"
+    "<b>1.</b> ➕ Bot yaratish → kategoriya va shablon tanlang\n"
+    "<b>2.</b> 🔑 @BotFather'dan olingan tokenni yuboring\n"
+    "<b>3.</b> 🎟 Tarifni tanlab, balansdan to'lang\n"
+    "<b>4.</b> 🎉 Botingiz tayyor!\n\n"
+    "💡 <i>Balansni «💳 Pul kiritish» → Stars orqali to'ldiring.\n"
+    "Do'st taklif qilib «💎 Referal» orqali bonus oling.</i>"
 )
 
 SUPPORT = "🧧 <b>Qo'llab-quvvatlash</b>\n\nSavollar bo'lsa: @your_support_username"

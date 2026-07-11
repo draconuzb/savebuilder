@@ -41,6 +41,33 @@ TEMPLATES = [
         "create_price": Decimal("50000"),
         "version": "1.0.0",
     },
+    {
+        "code": "kino_pro",
+        "category": TemplateCategory.MEDIA,
+        "title": "🎬 Kino Bot Pro",
+        "description": "Kino botning kengaytirilgan versiyasi — tezroq va ko'proq imkoniyat.",
+        "example_username": None,
+        "create_price": Decimal("75000"),
+        "version": "2.0.0",
+    },
+    {
+        "code": "video_bot",
+        "category": TemplateCategory.MEDIA,
+        "title": "📹 Pro Video Bot",
+        "description": "Har qanday videolarni kod orqali tarqatish.",
+        "example_username": None,
+        "create_price": Decimal("60000"),
+        "version": "1.0.0",
+    },
+    {
+        "code": "drama",
+        "category": TemplateCategory.MEDIA,
+        "title": "🎭 DramaBot",
+        "description": "Drama va qisqa metrajli videolar uchun.",
+        "example_username": None,
+        "create_price": Decimal("65000"),
+        "version": "1.0.0",
+    },
 ]
 
 TARIFFS = [

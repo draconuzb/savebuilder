@@ -6,55 +6,103 @@
 <title>SaveBuilder — Xavfsizlik tizimi</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-  :root { --bg:#0e1621; --card:#17212b; --accent:#2ea6ff; --ok:#4dd07a; --muted:#7d8b99; }
-  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-  html,body { height:100%; }
-  body { background:var(--bg); color:#fff; font-family:-apple-system,Segoe UI,Roboto,sans-serif;
-         display:flex; align-items:center; justify-content:center; padding:24px; }
-  .card { width:100%; max-width:360px; background:var(--card); border-radius:20px; padding:28px 22px;
-          text-align:center; box-shadow:0 12px 40px rgba(0,0,0,.4); }
-  .brand { font-weight:700; font-size:20px; letter-spacing:.5px; }
-  .brand span { color:var(--accent); }
-  .sub { color:var(--muted); font-size:12px; letter-spacing:2px; text-transform:uppercase; margin-top:4px; }
-  .ring { width:150px; height:150px; margin:26px auto 10px; position:relative; }
-  .ring svg { transform:rotate(-90deg); }
-  .ring circle { fill:none; stroke-width:8; }
-  .ring .bg { stroke:#22303c; }
-  .ring .fg { stroke:var(--ok); stroke-linecap:round; transition:stroke-dashoffset .4s ease; }
-  .pct { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-         font-size:30px; font-weight:700; }
-  .check { color:var(--ok); font-size:64px; display:none; }
-  .status { font-size:18px; font-weight:600; margin-top:8px; }
-  .hint { color:var(--muted); font-size:13px; margin-top:6px; }
-  .steps { display:flex; justify-content:space-between; margin-top:22px; }
-  .step { flex:1; font-size:11px; color:var(--muted); }
-  .step .dot { width:26px; height:26px; border-radius:50%; background:#22303c; margin:0 auto 6px;
-               display:flex; align-items:center; justify-content:center; font-size:13px; transition:.3s; }
-  .step.done .dot { background:var(--ok); color:#0e1621; }
-  .foot { margin-top:20px; color:var(--muted); font-size:12px; }
+  :root{
+    --bg1:#0b1020; --bg2:#131a35; --card:rgba(255,255,255,.06); --stroke:rgba(255,255,255,.12);
+    --accent:#5ea9ff; --accent2:#8b7bff; --ok:#43e59a; --muted:#93a1c0; --txt:#eaf0ff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+  body{
+    color:var(--txt); overflow:hidden;
+    background:radial-gradient(1200px 600px at 50% -10%, #1c2a5e 0%, transparent 60%),
+               linear-gradient(160deg,var(--bg1),var(--bg2));
+    display:flex; align-items:center; justify-content:center; padding:22px;
+  }
+  /* animatsion aura */
+  .aura{position:fixed;inset:0;z-index:0;overflow:hidden;}
+  .blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.5;animation:float 14s ease-in-out infinite;}
+  .b1{width:280px;height:280px;background:#3b6dff;top:-60px;left:-40px;}
+  .b2{width:240px;height:240px;background:#8b5bff;bottom:-50px;right:-30px;animation-delay:-5s;}
+  .b3{width:200px;height:200px;background:#2ad0a0;top:40%;left:60%;animation-delay:-9s;opacity:.35;}
+  @keyframes float{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(20px,-24px) scale(1.12);}}
+
+  .card{
+    position:relative;z-index:1;width:100%;max-width:360px;text-align:center;
+    background:var(--card);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+    border:1px solid var(--stroke);border-radius:26px;padding:30px 24px 24px;
+    box-shadow:0 24px 70px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08);
+    animation:rise .6s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(16px) scale(.98);}to{opacity:1;transform:none;}}
+
+  .logo{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:22px;letter-spacing:.3px;}
+  .logo .bolt{
+    width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:16px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    box-shadow:0 6px 18px rgba(94,169,255,.45);
+  }
+  .logo b{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .sub{color:var(--muted);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-top:6px;}
+
+  .ring{position:relative;width:168px;height:168px;margin:26px auto 8px;}
+  .ring svg{transform:rotate(-90deg);filter:drop-shadow(0 0 10px rgba(67,229,154,.35));}
+  .ring circle{fill:none;stroke-width:9;}
+  .ring .bg{stroke:rgba(255,255,255,.08);}
+  .ring .fg{stroke:url(#grad);stroke-linecap:round;transition:stroke-dashoffset .35s cubic-bezier(.4,0,.2,1);}
+  .sweep{position:absolute;inset:0;border-radius:50%;
+    background:conic-gradient(from 0deg, transparent 0 300deg, rgba(94,169,255,.25) 360deg);
+    -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 16px), #000 calc(100% - 15px));
+    mask:radial-gradient(farthest-side, transparent calc(100% - 16px), #000 calc(100% - 15px));
+    animation:spin 1.4s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;letter-spacing:-1px;}
+  .check{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:76px;color:var(--ok);
+    animation:pop .5s cubic-bezier(.2,1.6,.4,1);}
+  @keyframes pop{from{transform:scale(.3);opacity:0;}to{transform:scale(1);opacity:1;}}
+
+  .status{font-size:19px;font-weight:700;margin-top:10px;}
+  .hint{color:var(--muted);font-size:13px;margin-top:5px;}
+
+  .steps{display:flex;gap:8px;margin-top:24px;}
+  .step{flex:1;font-size:10.5px;color:var(--muted);}
+  .step .dot{width:34px;height:34px;border-radius:12px;margin:0 auto 7px;display:grid;place-items:center;font-size:15px;
+    background:rgba(255,255,255,.06);border:1px solid var(--stroke);transition:.35s;}
+  .step.done .dot{background:linear-gradient(135deg,var(--ok),#2ad0a0);color:#06210f;border-color:transparent;
+    box-shadow:0 6px 16px rgba(67,229,154,.4);transform:translateY(-2px);}
+  .step.done{color:var(--txt);}
+
+  .foot{margin-top:22px;color:var(--muted);font-size:11.5px;display:flex;align-items:center;justify-content:center;gap:6px;}
+  .bar{height:3px;border-radius:3px;background:rgba(255,255,255,.08);margin-top:16px;overflow:hidden;}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .35s;}
 </style>
 </head>
 <body>
+  <div class="aura"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
   <div class="card">
-    <div class="brand">⚡ Save<span>Builder</span></div>
+    <div class="logo"><span class="bolt">⚡</span>Save<b>Builder</b></div>
     <div class="sub">Xavfsizlik tizimi</div>
 
     <div class="ring">
-      <svg width="150" height="150" viewBox="0 0 150 150">
-        <circle class="bg" cx="75" cy="75" r="68"></circle>
-        <circle class="fg" cx="75" cy="75" r="68" id="fg"
-                stroke-dasharray="427" stroke-dashoffset="427"></circle>
+      <svg width="168" height="168" viewBox="0 0 168 168">
+        <defs><linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#5ea9ff"/><stop offset="1" stop-color="#43e59a"/>
+        </linearGradient></defs>
+        <circle class="bg" cx="84" cy="84" r="74"></circle>
+        <circle class="fg" cx="84" cy="84" r="74" id="fg" stroke-dasharray="465" stroke-dashoffset="465"></circle>
       </svg>
+      <div class="sweep" id="sweep"></div>
       <div class="pct" id="pct">0%</div>
       <div class="check" id="check">✓</div>
     </div>
 
     <div class="status" id="status">Tekshirilmoqda…</div>
-    <div class="hint" id="hint">Bu bir necha soniya oladi</div>
+    <div class="hint" id="hint">Hisobingiz himoyalanmoqda</div>
+    <div class="bar"><i id="bar"></i></div>
 
     <div class="steps">
       <div class="step" id="s1"><div class="dot">📱</div>Qurilma</div>
-      <div class="step" id="s2"><div class="dot">🛡</div>Tekshiruv</div>
+      <div class="step" id="s2"><div class="dot">🛡️</div>Tekshiruv</div>
       <div class="step" id="s3"><div class="dot">✓</div>Tasdiq</div>
     </div>
 
@@ -64,43 +112,36 @@
 <script>
 (function () {
   const tg = window.Telegram && window.Telegram.WebApp;
-  if (tg) { tg.ready(); tg.expand(); }
+  if (tg){ tg.ready(); tg.expand(); try{tg.setHeaderColor('#0b1020');tg.setBackgroundColor('#0b1020');}catch(e){} }
 
-  const C = 427, fg = document.getElementById('fg'), pctEl = document.getElementById('pct');
-  const statusEl = document.getElementById('status'), hintEl = document.getElementById('hint');
-  const checkEl = document.getElementById('check');
-  let pct = 0, verified = false;
+  const C=465, fg=document.getElementById('fg'), pctEl=document.getElementById('pct'),
+        statusEl=document.getElementById('status'), hintEl=document.getElementById('hint'),
+        checkEl=document.getElementById('check'), sweep=document.getElementById('sweep'),
+        bar=document.getElementById('bar');
+  let pct=0;
+  const set=p=>{pct=p;fg.style.strokeDashoffset=C-(C*p/100);pctEl.textContent=p+'%';bar.style.width=p+'%';};
+  const done=id=>{document.getElementById(id).classList.add('done');};
 
-  function setPct(p){ pct=p; fg.style.strokeDashoffset = C - (C*p/100); pctEl.textContent = p+'%'; }
-  function done(id){ document.getElementById(id).classList.add('done'); }
+  const anim=setInterval(()=>{ if(pct<90){set(pct+2); if(pct>25)done('s1'); if(pct>60)done('s2');} },70);
 
-  // Progress animatsiyasi (backendni kutgan holda)
-  const anim = setInterval(() => {
-    if (pct < 90) { setPct(pct + 3); if (pct>30) done('s1'); if (pct>60) done('s2'); }
-  }, 90);
-
-  function succeed() {
-    clearInterval(anim); setPct(100); done('s1'); done('s2'); done('s3');
-    pctEl.style.display='none'; checkEl.style.display='block';
-    statusEl.textContent = 'Tasdiqlandi!'; hintEl.textContent = 'Botga qaytishingiz mumkin';
-    if (tg) tg.HapticFeedback && tg.HapticFeedback.notificationOccurred('success');
-    setTimeout(() => { if (tg) tg.close(); }, 1400);
+  function succeed(){
+    clearInterval(anim); set(100); done('s1');done('s2');done('s3');
+    sweep.style.display='none'; pctEl.style.display='none'; checkEl.style.display='flex';
+    statusEl.textContent='Tasdiqlandi!'; hintEl.textContent='Botga qaytishingiz mumkin';
+    if(tg&&tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+    setTimeout(()=>{ if(tg) tg.close(); },1500);
   }
-  function fail(msg) {
-    clearInterval(anim);
-    statusEl.textContent = 'Xatolik'; hintEl.textContent = msg || 'Qayta urinib ko’ring';
-  }
+  function fail(m){ clearInterval(anim); sweep.style.display='none';
+    statusEl.textContent='Xatolik'; hintEl.textContent=m||'Qayta urinib ko’ring';
+    if(tg&&tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error'); }
 
-  const initData = (tg && tg.initData) || '';
-  if (!initData) { fail('Telegram ichida oching'); return; }
+  const initData=(tg&&tg.initData)||'';
+  if(!initData){ fail('Telegram ichida oching'); return; }
 
-  fetch('/webapp/verify', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ init_data: initData })
-  })
-  .then(r => r.json())
-  .then(d => { if (d.ok) succeed(); else fail(d.error); })
-  .catch(() => fail('Ulanish xatosi'));
+  fetch('/webapp/verify',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({init_data:initData})})
+    .then(r=>r.json()).then(d=>{ d.ok?succeed():fail(d.error); })
+    .catch(()=>fail('Ulanish xatosi'));
 })();
 </script>
 </body>

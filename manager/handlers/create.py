@@ -71,13 +71,14 @@ async def show_template(cq: CallbackQuery) -> None:
         await cq.answer("Shablon topilmadi.", show_alert=True)
         return
     text = (
-        f"🤖 <b>{tpl.title}</b>\n\n"
-        f"📟 Bot ochish narxi: <b>{tpl.create_price:,.0f}</b> so'm\n"
-        f"💳 Oylik to'lov: <i>Tarifga qarab belgilanadi</i>\n"
-        f"🤖 Namuna: {tpl.example_username or '—'}\n\n"
-        f"📋 Bot haqida:\n{tpl.description or ''}\n\n"
+        f"{tpl.title}\n"
+        f"━━━━━━━━━━━━━━━\n"
+        f"{tpl.description or ''}\n\n"
+        f"💰 Ochish narxi: <b>{tpl.create_price:,.0f}</b> so'm\n"
+        f"💳 Oylik to'lov: <i>tarifga qarab</i>\n"
+        f"🤖 Namuna: {tpl.example_username or '—'}\n"
         f"🎫 Versiya: {tpl.version}"
-    )
+    ).replace(",", " ")
     await cq.message.edit_text(text, reply_markup=template_page_kb(code))
     await cq.answer()
 
