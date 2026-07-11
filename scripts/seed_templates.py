@@ -86,6 +86,24 @@ TEMPLATES = [
         "create_price": Decimal("35000"),
         "version": "1.0.0",
     },
+    {
+        "code": "poll",
+        "category": TemplateCategory.SERVICE,
+        "title": "📊 So'rovnoma bot",
+        "description": "So'rovnoma yaratib, barcha obunachilaringizga tarqating.",
+        "example_username": None,
+        "create_price": Decimal("35000"),
+        "version": "1.0.0",
+    },
+    {
+        "code": "quiz",
+        "category": TemplateCategory.EDU,
+        "title": "🧠 Viktorina bot",
+        "description": "To'g'ri javobli test-viktorina yaratib, bilimlarni sinang.",
+        "example_username": None,
+        "create_price": Decimal("45000"),
+        "version": "1.0.0",
+    },
 ]
 
 TARIFFS = [
