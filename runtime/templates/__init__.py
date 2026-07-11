@@ -11,6 +11,7 @@ from runtime.templates.finance.router import build_finance_router
 from runtime.templates.group.router import build_group_router
 from runtime.templates.kino.admin import build_admin_router
 from runtime.templates.poll.router import build_poll_router
+from runtime.templates.protect.router import build_protect_router
 from runtime.templates.kino.router import build_user_router
 from runtime.templates.media_spec import AUDIO, KINO, SERIAL, MediaSpec
 
@@ -49,6 +50,12 @@ def _finance_dispatcher(child_bot_id: int, owner_tg_id: int) -> Dispatcher:
     return dp
 
 
+def _protect_dispatcher(child_bot_id: int, owner_tg_id: int) -> Dispatcher:
+    dp = Dispatcher(storage=get_storage())
+    dp.include_router(build_protect_router(child_bot_id, owner_tg_id))
+    return dp
+
+
 def _poll_dispatcher_builder(is_quiz: bool) -> Callable[[int, int], Dispatcher]:
     def build(child_bot_id: int, owner_tg_id: int) -> Dispatcher:
         dp = Dispatcher(storage=get_storage())
@@ -71,4 +78,5 @@ TEMPLATE_BUILDERS: dict[str, Callable[[int, int], Dispatcher]] = {
     "poll": _poll_dispatcher_builder(is_quiz=False),
     "quiz": _poll_dispatcher_builder(is_quiz=True),
     "currency": _finance_dispatcher,
+    "group_protect": _protect_dispatcher,
 }

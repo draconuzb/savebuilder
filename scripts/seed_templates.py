@@ -113,6 +113,15 @@ TEMPLATES = [
         "create_price": Decimal("40000"),
         "version": "1.0.0",
     },
+    {
+        "code": "group_protect",
+        "category": TemplateCategory.GROUP,
+        "title": "🔒 Guruh himoyachi",
+        "description": "Oddiy a'zolarning havola, reklama va spam xabarlarini avtomatik o'chiradi.",
+        "example_username": None,
+        "create_price": Decimal("45000"),
+        "version": "1.0.0",
+    },
 ]
 
 TARIFFS = [
