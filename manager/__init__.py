@@ -19,7 +19,9 @@ def build_manager_bot() -> Bot:
 
 def build_manager_dispatcher() -> Dispatcher:
     from manager.handlers import build_manager_router
+    from manager.middlewares import BlockMiddleware
 
     dp = Dispatcher(storage=get_storage())
+    dp.update.outer_middleware(BlockMiddleware())
     dp.include_router(build_manager_router())
     return dp

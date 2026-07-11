@@ -36,6 +36,7 @@ class User(Base):
     balance: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
     referred_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_blocked: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     bots: Mapped[list["ChildBot"]] = relationship(back_populates="owner")

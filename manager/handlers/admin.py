@@ -32,6 +32,16 @@ class AdminCast(StatesGroup):
     confirming = State()
 
 
+class AdminUser(StatesGroup):
+    waiting_query = State()
+    waiting_add = State()
+    waiting_deduct = State()
+
+
+class AdminTpl(StatesGroup):
+    waiting_price = State()
+
+
 def _is_super(tg_id: int) -> bool:
     return tg_id in get_settings().super_admin_ids
 
@@ -43,9 +53,18 @@ def _panel_kb() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="📊 Statistika", callback_data="adm:stats", style="primary"),
                 InlineKeyboardButton(text="💰 Daromad", callback_data="adm:rev", style="success"),
             ],
-            [InlineKeyboardButton(text="📦 Shablonlar", callback_data="adm:tpls")],
+            [
+                InlineKeyboardButton(text="👥 Userlar", callback_data="adm:users", style="primary"),
+                InlineKeyboardButton(text="📦 Shablonlar", callback_data="adm:tpls"),
+            ],
             [InlineKeyboardButton(text="📢 Ommaviy xabar", callback_data="adm:cast", style="primary")],
         ]
+    )
+
+
+def _back_kb(cb: str = "adm:back") -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[[InlineKeyboardButton(text="⬅️ Orqaga", callback_data=cb)]]
     )
 
 
@@ -135,8 +154,47 @@ async def templates_list(cq: CallbackQuery) -> None:
     await cq.answer()
 
 
+def _tpl_card_kb(t: Template) -> InlineKeyboardMarkup:
+    toggle = (
+        InlineKeyboardButton(text="🔴 Nofaol qilish", callback_data=f"adm:tpltgl:{t.id}", style="danger")
+        if t.is_active
+        else InlineKeyboardButton(text="🟢 Faollashtirish", callback_data=f"adm:tpltgl:{t.id}", style="success")
+    )
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="✏️ Narxni o'zgartirish", callback_data=f"adm:tplprice:{t.id}", style="primary")],
+            [toggle],
+            [InlineKeyboardButton(text="⬅️ Orqaga", callback_data="adm:tpls")],
+        ]
+    )
+
+
+async def _show_tpl_card(cq: CallbackQuery, tid: int) -> None:
+    async with get_session() as s:
+        t = (await s.execute(select(Template).where(Template.id == tid))).scalar_one_or_none()
+    if not t:
+        await cq.answer("Topilmadi", show_alert=True)
+        return
+    txt = (
+        f"{t.title}\n━━━━━━━━━━━━━━━\n"
+        f"├ 🏷 Kod: <code>{t.code}</code>\n"
+        f"├ 💰 Narx: <b>{t.create_price:,.0f}</b> so'm\n"
+        f"├ 🗂 Kategoriya: {t.category}\n"
+        f"└ {'🟢 Faol' if t.is_active else '🔴 Nofaol'}"
+    ).replace(",", " ")
+    await cq.message.edit_text(txt, reply_markup=_tpl_card_kb(t))
+
+
 @router.callback_query(F.data.startswith("adm:tpl:"))
-async def toggle_template(cq: CallbackQuery) -> None:
+async def template_card(cq: CallbackQuery) -> None:
+    if not _is_super(cq.from_user.id):
+        return
+    await _show_tpl_card(cq, int(cq.data.split(":")[2]))
+    await cq.answer()
+
+
+@router.callback_query(F.data.startswith("adm:tpltgl:"))
+async def template_toggle(cq: CallbackQuery) -> None:
     if not _is_super(cq.from_user.id):
         return
     tid = int(cq.data.split(":")[2])
@@ -145,7 +203,36 @@ async def toggle_template(cq: CallbackQuery) -> None:
         if t:
             t.is_active = not t.is_active
     await cq.answer("Holat o'zgardi")
-    await templates_list(cq)
+    await _show_tpl_card(cq, tid)
+
+
+@router.callback_query(F.data.startswith("adm:tplprice:"))
+async def template_price_start(cq: CallbackQuery, state: FSMContext) -> None:
+    if not _is_super(cq.from_user.id):
+        return
+    await state.set_state(AdminTpl.waiting_price)
+    await state.update_data(tid=int(cq.data.split(":")[2]))
+    await cq.message.answer("✏️ Yangi ochish narxini yuboring (masalan 80000):")
+    await cq.answer()
+
+
+@router.message(AdminTpl.waiting_price, F.text)
+async def template_price_set(message: Message, state: FSMContext) -> None:
+    if not _is_super(message.from_user.id):
+        return
+    data = await state.get_data()
+    await state.clear()
+    try:
+        price = Decimal(message.text.strip())
+    except (InvalidOperation, AttributeError):
+        await message.answer("❌ Noto'g'ri son.")
+        return
+    async with get_session() as s:
+        t = (await s.execute(select(Template).where(Template.id == data["tid"]))).scalar_one_or_none()
+        if t:
+            t.create_price = price
+            title = t.title
+    await message.answer(f"✅ {title} narxi <b>{price:,.0f}</b> so'm qilib o'zgartirildi.".replace(",", " "))
 
 
 # ---- Ommaviy xabar (barcha mijozlarga) ----
@@ -196,6 +283,204 @@ async def cast_go(cq: CallbackQuery, state: FSMContext) -> None:
     await cq.answer()
 
 
+# ---- Userlar boshqaruvi ----
+async def _find_user(query: str) -> User | None:
+    query = query.strip().lstrip("@")
+    async with get_session() as s:
+        if query.isdigit():
+            u = (await s.execute(select(User).where(User.tg_id == int(query)))).scalar_one_or_none()
+            if u:
+                return u
+        return (
+            await s.execute(select(User).where(func.lower(User.username) == query.lower()))
+        ).scalar_one_or_none()
+
+
+async def _user_card(u: User) -> str:
+    async with get_session() as s:
+        bots = await s.scalar(select(func.count(ChildBot.id)).where(ChildBot.owner_id == u.id))
+        refs = await s.scalar(select(func.count(User.id)).where(User.referred_by == u.id))
+    block = "🚫 <b>BLOKLANGAN</b>\n" if u.is_blocked else ""
+    return (
+        f"👤 <b>{u.full_name or '—'}</b>\n"
+        "━━━━━━━━━━━━━━━\n"
+        f"{block}"
+        f"├ 🆔 <code>{u.tg_id}</code>\n"
+        f"├ 🔗 @{u.username or '—'}\n"
+        f"├ 💰 Balans: <b>{u.balance:,.0f}</b> so'm\n"
+        f"├ 🤖 Botlar: <b>{bots or 0}</b>\n"
+        f"├ 👥 Takliflar: <b>{refs or 0}</b>\n"
+        f"└ {'✅ tasdiqlangan' if u.is_verified else '🕓 tasdiqlanmagan'}"
+    ).replace(",", " ")
+
+
+def _user_kb(u: User) -> InlineKeyboardMarkup:
+    ban_btn = (
+        InlineKeyboardButton(text="✅ Blokdan chiqarish", callback_data=f"adm:unban:{u.id}", style="success")
+        if u.is_blocked
+        else InlineKeyboardButton(text="🚫 Bloklash", callback_data=f"adm:ban:{u.id}", style="danger")
+    )
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="➕ Balans", callback_data=f"adm:uadd:{u.id}", style="success"),
+                InlineKeyboardButton(text="➖ Balans", callback_data=f"adm:uded:{u.id}", style="danger"),
+            ],
+            [InlineKeyboardButton(text="🤖 Botlari", callback_data=f"adm:ubots:{u.id}")],
+            [ban_btn],
+            [InlineKeyboardButton(text="⬅️ Orqaga", callback_data="adm:back")],
+        ]
+    )
+
+
+@router.callback_query(F.data == "adm:users")
+async def users_menu(cq: CallbackQuery, state: FSMContext) -> None:
+    if not _is_super(cq.from_user.id):
+        return
+    await state.set_state(AdminUser.waiting_query)
+    async with get_session() as s:
+        total = await s.scalar(select(func.count(User.id)))
+        recent = (
+            await s.execute(select(User).order_by(User.id.desc()).limit(8))
+        ).scalars().all()
+    rows = [
+        [InlineKeyboardButton(text=f"👤 {u.full_name or u.tg_id}", callback_data=f"adm:user:{u.id}")]
+        for u in recent
+    ]
+    rows.append([InlineKeyboardButton(text="⬅️ Orqaga", callback_data="adm:back")])
+    await cq.message.edit_text(
+        f"👥 <b>Userlar</b> (jami: {total or 0})\n"
+        "━━━━━━━━━━━━━━━\n"
+        "🔍 Qidirish uchun <b>tg_id</b> yoki <b>@username</b> yuboring,\n"
+        "yoki so'nggilardan tanlang:",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
+    )
+    await cq.answer()
+
+
+@router.message(AdminUser.waiting_query, F.text)
+async def user_search(message: Message, state: FSMContext) -> None:
+    if not _is_super(message.from_user.id):
+        return
+    u = await _find_user(message.text)
+    if not u:
+        await message.answer("❌ User topilmadi. tg_id yoki @username yuboring.")
+        return
+    await state.clear()
+    await message.answer(await _user_card(u), reply_markup=_user_kb(u))
+
+
+@router.callback_query(F.data.startswith("adm:user:"))
+async def user_card(cq: CallbackQuery, state: FSMContext) -> None:
+    if not _is_super(cq.from_user.id):
+        return
+    await state.clear()
+    uid = int(cq.data.split(":")[2])
+    async with get_session() as s:
+        u = (await s.execute(select(User).where(User.id == uid))).scalar_one_or_none()
+    if not u:
+        await cq.answer("Topilmadi", show_alert=True)
+        return
+    await cq.message.edit_text(await _user_card(u), reply_markup=_user_kb(u))
+    await cq.answer()
+
+
+@router.callback_query(F.data.startswith("adm:uadd:"))
+async def user_add_start(cq: CallbackQuery, state: FSMContext) -> None:
+    if not _is_super(cq.from_user.id):
+        return
+    await state.set_state(AdminUser.waiting_add)
+    await state.update_data(target=int(cq.data.split(":")[2]))
+    await cq.message.answer("➕ Qancha so'm qo'shamiz? (masalan 50000)")
+    await cq.answer()
+
+
+@router.callback_query(F.data.startswith("adm:uded:"))
+async def user_deduct_start(cq: CallbackQuery, state: FSMContext) -> None:
+    if not _is_super(cq.from_user.id):
+        return
+    await state.set_state(AdminUser.waiting_deduct)
+    await state.update_data(target=int(cq.data.split(":")[2]))
+    await cq.message.answer("➖ Qancha so'm yechamiz? (masalan 20000)")
+    await cq.answer()
+
+
+async def _adjust_balance(message: Message, state: FSMContext, sign: int) -> None:
+    data = await state.get_data()
+    await state.clear()
+    try:
+        amount = Decimal(message.text.strip()) * sign
+    except (InvalidOperation, AttributeError):
+        await message.answer("❌ Noto'g'ri son.")
+        return
+    async with get_session() as s:
+        u = (await s.execute(select(User).where(User.id == data["target"]))).scalar_one_or_none()
+        if not u:
+            await message.answer("❌ User topilmadi.")
+            return
+        u.balance += amount
+        if u.balance < 0:
+            u.balance = Decimal(0)
+        s.add(Payment(user_id=u.id, amount=abs(amount), provider="admin",
+                      purpose="topup" if sign > 0 else "deduct", status="paid"))
+        new_bal = u.balance
+        tg_id = u.tg_id
+    await message.answer(f"✅ Bajarildi. Yangi balans: <b>{new_bal:,.0f}</b> so'm".replace(",", " "))
+    if sign > 0:
+        try:
+            await message.bot.send_message(
+                tg_id, f"💰 Hisobingizga <b>{abs(amount):,.0f}</b> so'm qo'shildi!".replace(",", " ")
+            )
+        except Exception:  # noqa: BLE001
+            pass
+
+
+@router.message(AdminUser.waiting_add, F.text)
+async def user_add(message: Message, state: FSMContext) -> None:
+    if _is_super(message.from_user.id):
+        await _adjust_balance(message, state, 1)
+
+
+@router.message(AdminUser.waiting_deduct, F.text)
+async def user_deduct(message: Message, state: FSMContext) -> None:
+    if _is_super(message.from_user.id):
+        await _adjust_balance(message, state, -1)
+
+
+@router.callback_query(F.data.regexp(r"^adm:(ban|unban):"))
+async def user_ban(cq: CallbackQuery) -> None:
+    if not _is_super(cq.from_user.id):
+        return
+    parts = cq.data.split(":")
+    block = parts[1] == "ban"
+    uid = int(parts[2])
+    async with get_session() as s:
+        u = (await s.execute(select(User).where(User.id == uid))).scalar_one_or_none()
+        if u:
+            u.is_blocked = block
+    await cq.answer("🚫 Bloklandi" if block else "✅ Blokdan chiqarildi")
+    async with get_session() as s:
+        u = (await s.execute(select(User).where(User.id == uid))).scalar_one()
+    await cq.message.edit_text(await _user_card(u), reply_markup=_user_kb(u))
+
+
+@router.callback_query(F.data.startswith("adm:ubots:"))
+async def user_bots(cq: CallbackQuery) -> None:
+    if not _is_super(cq.from_user.id):
+        return
+    uid = int(cq.data.split(":")[2])
+    async with get_session() as s:
+        bots = (await s.execute(select(ChildBot).where(ChildBot.owner_id == uid))).scalars().all()
+    if not bots:
+        await cq.answer("Bot yo'q", show_alert=True)
+        return
+    lines = ["🤖 <b>Userning botlari</b>\n━━━━━━━━━━━━━━━"]
+    for b in bots:
+        lines.append(f"• @{b.bot_username or b.id} — {b.status}")
+    await cq.message.edit_text("\n".join(lines), reply_markup=_back_kb(f"adm:user:{uid}"))
+    await cq.answer()
+
+
 # ---- Test balans (dev) ----
 @router.message(Command("topup"))
 async def topup_cmd(message: Message, command: CommandObject) -> None:
@@ -212,3 +497,36 @@ async def topup_cmd(message: Message, command: CommandObject) -> None:
         await top_up(s, u, amount, provider="admin")
         new_balance = u.balance
     await message.answer(f"✅ Balans: <b>{new_balance:,.0f}</b> so'm".replace(",", " "))
+
+
+@router.message(Command("give"))
+async def give_cmd(message: Message, command: CommandObject) -> None:
+    """/give <tg_id> <miqdor> — userga pul yuborish (super-admin)."""
+    if not _is_super(message.from_user.id):
+        return
+    parts = (command.args or "").split()
+    if len(parts) != 2 or not parts[0].isdigit():
+        await message.answer("Foydalanish: <code>/give &lt;tg_id&gt; &lt;miqdor&gt;</code>")
+        return
+    try:
+        amount = Decimal(parts[1])
+    except InvalidOperation:
+        await message.answer("❌ Noto'g'ri miqdor.")
+        return
+    async with get_session() as s:
+        u = (await s.execute(select(User).where(User.tg_id == int(parts[0])))).scalar_one_or_none()
+        if not u:
+            await message.answer("❌ Bunday user topilmadi (u botni ishga tushirmagan).")
+            return
+        await top_up(s, u, amount, provider="admin")
+        new_bal = u.balance
+    await message.answer(
+        f"✅ @{u.username or u.tg_id} ga <b>{amount:,.0f}</b> so'm yuborildi.\n"
+        f"Yangi balans: <b>{new_bal:,.0f}</b> so'm".replace(",", " ")
+    )
+    try:
+        await message.bot.send_message(
+            int(parts[0]), f"💰 Hisobingizga <b>{amount:,.0f}</b> so'm qo'shildi!".replace(",", " ")
+        )
+    except Exception:  # noqa: BLE001
+        pass
