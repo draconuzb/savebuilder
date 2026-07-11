@@ -70,7 +70,17 @@ def _manage_kb(bot: ChildBot) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
+_STATUS_LABEL = {
+    "active": "🟢 Aktiv",
+    "stopped": "⏸ To'xtatilgan",
+    "expired": "🔴 Muddati tugagan",
+    "pending_token": "🕓 Kutilmoqda",
+}
+
+
 async def _render_bot(bot: ChildBot) -> str:
+    from manager.texts import premiumize
+
     async with get_session() as s:
         tpl = (
             await s.execute(select(Template).where(Template.id == bot.template_id))
@@ -79,12 +89,13 @@ async def _render_bot(bot: ChildBot) -> str:
             await s.execute(select(Tariff).where(Tariff.id == bot.tariff_id))
         ).scalar_one_or_none()
     exp = bot.expires_at.strftime("%Y-%m-%d") if bot.expires_at else "—"
-    return (
-        f"🤖 <b>@{bot.bot_username}</b>\n\n"
-        f"📦 Shablon: {tpl.title if tpl else '—'}\n"
-        f"🎟 Tarif: {tariff.name if tariff else '—'}\n"
-        f"📅 Amal qiladi: <b>{exp}</b>\n"
-        f"⚙️ Holat: <b>{bot.status}</b>"
+    return premiumize(
+        f"🤖 <b>@{bot.bot_username}</b>\n"
+        "━━━━━━━━━━━━━━━\n"
+        f"├ 📦 Shablon: <b>{tpl.title if tpl else '—'}</b>\n"
+        f"├ 🎟 Tarif: <b>{tariff.name if tariff else '—'}</b>\n"
+        f"├ 📅 Amal qiladi: <b>{exp}</b>\n"
+        f"└ ⚙️ Holat: <b>{_STATUS_LABEL.get(bot.status, bot.status)}</b>"
     )
 
 
@@ -115,7 +126,7 @@ async def back_to_list(cq: CallbackQuery) -> None:
             r = await s.execute(select(ChildBot).where(ChildBot.owner_id == user.id))
             bots = r.scalars().all()
     await cq.message.edit_text(
-        "🤖 <b>Botlarim</b>\n\nBoshqarish uchun tanlang:", reply_markup=_list_kb(bots)
+        "🤖 <b>Botlarim</b>\n━━━━━━━━━━━━━━━\nBoshqarish uchun botni tanlang 👇", reply_markup=_list_kb(bots)
     )
     await cq.answer()
 

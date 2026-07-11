@@ -90,15 +90,18 @@ async def show_tariffs_info(cq: CallbackQuery) -> None:
     async with get_session() as s:
         res = await s.execute(select(Tariff).where(Tariff.is_active.is_(True)))
         tariffs = res.scalars().all()
-    lines = ["🎟 <b>Tariflar ro'yxati</b>\n"]
+    from manager.texts import premiumize
+
+    lines = ["🎟 <b>Tariflar ro'yxati</b>", "━━━━━━━━━━━━━━━"]
     for t in tariffs:
         per_day = float(t.price) / t.duration_days if t.duration_days else 0
         lines.append(
-            f"📦 <b>{t.name}</b> — ⚡️{t.speed_x}x · {t.duration_days} kun · "
-            f"<b>{t.price:,.0f}</b> so'm ({per_day:,.0f} so'm/kun)"
+            f"⚡️ <b>{t.name}</b> · {t.speed_x}x tezlik\n"
+            f"   ├ 📅 {t.duration_days} kun\n"
+            f"   └ 💰 <b>{t.price:,.0f}</b> so'm  <i>({per_day:,.0f}/kun)</i>"
         )
     await cq.answer()
-    await cq.message.answer("\n".join(lines))
+    await cq.message.answer(premiumize("\n".join(lines)).replace(",", " "))
 
 
 @router.callback_query(F.data.startswith("tplcreate:"))
@@ -184,6 +187,7 @@ async def choose_tariff(cq: CallbackQuery, state: FSMContext, bot: Bot) -> None:
             return
 
         secret = secrets.token_urlsafe(24)
+        expires = tariff_expiry(tariff.duration_days)
         child = ChildBot(
             owner_id=user.id,
             template_id=data["template_id"],
@@ -193,27 +197,42 @@ async def choose_tariff(cq: CallbackQuery, state: FSMContext, bot: Bot) -> None:
             webhook_secret=secret,
             tariff_id=tariff_id,
             status=ChildBotStatus.ACTIVE,
-            expires_at=tariff_expiry(tariff.duration_days),
+            expires_at=expires,
             config={},
         )
         s.add(child)
         await s.flush()
         child_id = child.id
+        tariff_name = tariff.name
+        new_balance = user.balance
 
     # Bola botga webhook o'rnatish (runtime orqali)
     try:
         from runtime.loader import register_child_bot
 
         await register_child_bot(child_id)
-        status_line = "✅ Botingiz jonli ishga tushdi!"
+        status_line = "🟢 <b>Bot jonli ishga tushdi!</b>"
     except Exception as e:  # noqa: BLE001
         log.exception("register_child_bot xato: %s", e)
-        status_line = "⚠️ Bot yaratildi, lekin webhook o'rnatishda xato. Admin tekshiradi."
+        status_line = "⚠️ Bot yaratildi, lekin ishga tushirishda xato. Admin tekshiradi."
+
+    from manager.texts import premiumize
 
     await state.clear()
+    username = data["bot_username"]
     await cq.message.edit_text(
-        f"🎉 <b>Bot yaratildi!</b>\n\n"
-        f"🤖 @{data['bot_username']}\n{status_line}"
+        premiumize(
+            "🎉 <b>Tabriklaymiz — bot tayyor!</b>\n"
+            "━━━━━━━━━━━━━━━\n"
+            f"🤖 <b>@{username}</b>\n"
+            f"🎟 Tarif: <b>{tariff_name}</b>\n"
+            f"📅 Amal qiladi: <b>{expires.strftime('%Y-%m-%d')}</b> gacha\n"
+            f"💰 Qolgan balans: <b>{new_balance:,.0f}</b> so'm\n\n"
+            f"{status_line}\n\n"
+            f"👉 <a href='https://t.me/{username}'>Botni ochish</a> · "
+            f"«🤖 Botlarim» orqali boshqaring".replace(",", " ")
+        ),
+        disable_web_page_preview=True,
     )
-    await cq.message.answer("Asosiy menyu:", reply_markup=MAIN_MENU)
-    await cq.answer()
+    await cq.message.answer("🏠 Asosiy menyu:", reply_markup=MAIN_MENU)
+    await cq.answer("🎉 Bot yaratildi!")

@@ -115,9 +115,14 @@ async def on_paid(message: Message) -> None:
                     except Exception:  # noqa: BLE001
                         pass
 
+    from manager.texts import premiumize
+
     await message.answer(
-        f"✅ To'lov qabul qilindi!\n"
-        f"⭐ {sp.total_amount} Stars → <b>+{som:,}</b> so'm\n"
-        f"💰 Yangi balans: <b>{new_balance:,.0f}</b> so'm".replace(",", " ")
+        premiumize(
+            "🎉 <b>To'lov qabul qilindi!</b>\n"
+            "━━━━━━━━━━━━━━━\n"
+            f"⭐️ {sp.total_amount} Stars  →  <b>+{som:,}</b> so'm\n"
+            f"💰 Yangi balans: <b>{new_balance:,.0f}</b> so'm".replace(",", " ")
+        )
         + bonus_line
     )
