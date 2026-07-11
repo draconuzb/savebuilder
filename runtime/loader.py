@@ -19,9 +19,8 @@ from security.crypto import decrypt_token
 log = logging.getLogger(__name__)
 
 
-async def register_child_bot(child_id: int) -> None:
-    """Bitta bola botni ishga tushirish (webhook + registry)."""
-    settings = get_settings()
+async def build_child(child_id: int) -> tuple[Bot, "object", str]:
+    """DB dan bola botni o'qib, Bot + Dispatcher qurish (webhook o'rnatmasdan)."""
     async with get_session() as s:
         child = (
             await s.execute(select(ChildBot).where(ChildBot.id == child_id))
@@ -45,11 +44,17 @@ async def register_child_bot(child_id: int) -> None:
 
     bot = Bot(token=token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = builder(child_id, owner_tg_id)
+    return bot, dp, secret
 
+
+async def register_child_bot(child_id: int) -> None:
+    """Bitta bola botni webhook rejimida ishga tushirish (+ registry)."""
+    settings = get_settings()
+    bot, dp, secret = await build_child(child_id)
     webhook_url = settings.child_webhook_url(secret)
     await bot.set_webhook(webhook_url, drop_pending_updates=True)
     registry.add(registry.RunningBot(child_id=child_id, secret=secret, bot=bot, dp=dp))
-    log.info("Bola bot ishga tushdi: child=%s secret=%s", child_id, secret[:6])
+    log.info("Bola bot ishga tushdi (webhook): child=%s secret=%s", child_id, secret[:6])
 
 
 async def unregister_child_bot(secret: str) -> None:

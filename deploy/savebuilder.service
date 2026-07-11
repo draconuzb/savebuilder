@@ -1,0 +1,16 @@
+[Unit]
+Description=SaveBuilder Clone (manager + child bots webhook multiplekser)
+After=network.target postgresql.service redis.service
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/savebuilder
+EnvironmentFile=/home/ubuntu/savebuilder/.env
+ExecStart=/home/ubuntu/savebuilder/.venv/bin/uvicorn runtime.app:app --host 0.0.0.0 --port 8080 --workers 1
+Restart=always
+RestartSec=3
+StandardOutput=append:/var/log/savebuilder.log
+StandardError=append:/var/log/savebuilder.log
+
+[Install]
+WantedBy=multi-user.target
